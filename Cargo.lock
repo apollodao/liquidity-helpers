@@ -22,7 +22,7 @@ checksum = "216261ddc8289130e551ddcd5ce8a064710c0d064a4d2895c67151c92b5443f6"
 [[package]]
 name = "apollo-utils"
 version = "0.1.0"
-source = "git+https://github.com/apollodao/apollo-utils#50643e9e738a2ccbfb709948247ba5820d15b2ab"
+source = "git+https://github.com/apollodao/apollo-utils#c26d468a6d06b8d830168e9950bd3c5f312d8d54"
 dependencies = [
  "cosmwasm-std",
  "cw-asset",
@@ -40,26 +40,6 @@ dependencies = [
  "schemars",
  "serde",
  "uint",
-]
-
-[[package]]
-name = "astroport-liquidity-helper"
-version = "0.1.0"
-dependencies = [
- "apollo-utils",
- "astroport",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cosmwasm-storage",
- "cw-asset",
- "cw-bigint",
- "cw-dex",
- "cw-multi-test",
- "cw-storage-plus 0.15.1",
- "cw2 0.15.1",
- "schemars",
- "serde",
- "thiserror",
 ]
 
 [[package]]
@@ -277,16 +257,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cw-bigint"
-version = "0.4.3"
-source = "git+https://github.com/apollodao/cw-bigint#c2217a76b08cb65204db407f661298c48b01e763"
-dependencies = [
- "autocfg",
- "num-integer",
- "num-traits",
-]
-
-[[package]]
 name = "cw-controllers"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -318,7 +288,7 @@ dependencies = [
 [[package]]
 name = "cw-dex"
 version = "0.0.1"
-source = "git+https://github.com/apollodao/cw-dex#b47a6423b9109427586afb23f75dda93b71002a8"
+source = "git+https://github.com/apollodao/cw-dex#123a18cbd93c253df5b86b485c3ebf821a16d9d3"
 dependencies = [
  "apollo-utils",
  "astroport",
@@ -943,6 +913,24 @@ dependencies = [
  "cosmwasm-std",
  "schemars",
  "serde",
+]
+
+[[package]]
+name = "osmosis-liquidity-helper"
+version = "0.1.0"
+dependencies = [
+ "apollo-utils",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cosmwasm-storage",
+ "cw-asset",
+ "cw-dex",
+ "cw-multi-test",
+ "cw-storage-plus 0.15.1",
+ "cw2 0.15.1",
+ "schemars",
+ "serde",
+ "thiserror",
 ]
 
 [[package]]

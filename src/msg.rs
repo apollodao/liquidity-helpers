@@ -1,12 +1,10 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{to_binary, Addr, Binary, CosmosMsg, Env, StdResult, Uint128, WasmMsg};
-use cw_asset::{AssetList, AssetListUnchecked};
-use cw_dex::astroport::AstroportPool;
+use cosmwasm_std::{to_binary, Binary, CosmosMsg, Env, StdResult, Uint128, WasmMsg};
+use cw_asset::{Asset, AssetListUnchecked};
+use cw_dex::osmosis::OsmosisPool;
 
 #[cw_serde]
-pub struct InstantiateMsg {
-    pub astroport_factory: String,
-}
+pub struct InstantiateMsg {}
 
 #[cw_serde]
 pub enum ExecuteMsg {
@@ -20,11 +18,7 @@ pub enum ExecuteMsg {
 
 #[cw_serde]
 pub enum CallbackMsg {
-    ProvideLiquidity {
-        assets: AssetList,
-        min_out: Uint128,
-        pool: AstroportPool,
-    },
+    SingleSidedJoin { asset: Asset, pool: OsmosisPool },
 }
 
 impl CallbackMsg {
@@ -39,7 +33,4 @@ impl CallbackMsg {
 
 #[cw_serde]
 #[derive(QueryResponses)]
-pub enum QueryMsg {
-    #[returns(Addr)]
-    AstroportFactory {},
-}
+pub enum QueryMsg {}

@@ -1,5 +1,5 @@
 [package]
-name = "astroport-liquidity-helper"
+name = "osmosis-liquidity-helper"
 version = "0.1.0"
 authors = ["Sturdy <sturdy@apollo.farm>"]
 edition = "2021"
@@ -48,10 +48,8 @@ cw2 = "0.15.1"
 schemars = "0.8.10"
 serde = { version = "1.0.145", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.31" }
-cw-asset = { git = "https://github.com/apollodao/cw-asset", features = ["astroport"] }
+cw-asset = { git = "https://github.com/apollodao/cw-asset" }
 cw-dex = { git = "https://github.com/apollodao/cw-dex" }
-astroport-core = { package = "astroport", rev = "126d43216111df786472fe2a845c1e2fadfe4a36", git = "https://github.com/astroport-fi/astroport-core.git" }
-cw-bigint = { git = "https://github.com/apollodao/cw-bigint" }
 apollo-utils = { git = "https://github.com/apollodao/apollo-utils" }
 
 [dev-dependencies]
