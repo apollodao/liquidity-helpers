@@ -15,12 +15,6 @@ pub struct LiquidityHelperBase<T>(pub T);
 pub type LiquidityHelperUnchecked = LiquidityHelperBase<String>;
 pub type LiquidityHelper = LiquidityHelperBase<Addr>;
 
-impl LiquidityHelperUnchecked {
-    pub fn check(self, api: &dyn Api) -> StdResult<LiquidityHelper> {
-        Ok(LiquidityHelperBase(api.addr_validate(&self.0)?))
-    }
-}
-
 impl LiquidityHelper {
     pub fn addr(&self) -> Addr {
         self.0.clone()
@@ -47,5 +41,17 @@ impl LiquidityHelper {
             min_out,
             pool,
         })
+    }
+}
+
+impl LiquidityHelperUnchecked {
+    pub fn check(self, api: &dyn Api) -> StdResult<LiquidityHelper> {
+        Ok(LiquidityHelperBase(api.addr_validate(&self.0)?))
+    }
+}
+
+impl From<LiquidityHelper> for LiquidityHelperUnchecked {
+    fn from(h: LiquidityHelper) -> Self {
+        LiquidityHelperBase(h.0.to_string())
     }
 }
