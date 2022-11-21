@@ -2,7 +2,7 @@ use cw_asset::AssetList;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::{to_binary, Addr, Binary, CosmosMsg, StdResult, Uint128, WasmMsg};
+use cosmwasm_std::{to_binary, Addr, Api, Binary, CosmosMsg, StdResult, Uint128, WasmMsg};
 
 use crate::msg::ExecuteMsg;
 
@@ -10,7 +10,16 @@ use crate::msg::ExecuteMsg;
 /// for working with this contract. It can be imported by other contracts
 /// who wish to call this contract.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct LiquidityHelper(pub Addr);
+pub struct LiquidityHelperBase<T>(pub T);
+
+pub type LiquidityHelperUnchecked = LiquidityHelperBase<String>;
+pub type LiquidityHelper = LiquidityHelperBase<Addr>;
+
+impl LiquidityHelperUnchecked {
+    pub fn check(self, api: &dyn Api) -> StdResult<LiquidityHelper> {
+        Ok(LiquidityHelperBase(api.addr_validate(&self.0)?))
+    }
+}
 
 impl LiquidityHelper {
     pub fn addr(&self) -> Addr {
