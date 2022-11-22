@@ -16,6 +16,10 @@ pub type LiquidityHelperUnchecked = LiquidityHelperBase<String>;
 pub type LiquidityHelper = LiquidityHelperBase<Addr>;
 
 impl LiquidityHelper {
+    pub fn new(address: Addr) -> Self {
+        Self(address)
+    }
+
     pub fn addr(&self) -> Addr {
         self.0.clone()
     }
