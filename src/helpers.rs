@@ -16,6 +16,10 @@ pub type LiquidityHelperUnchecked = LiquidityHelperBase<String>;
 pub type LiquidityHelper = LiquidityHelperBase<Addr>;
 
 impl LiquidityHelper {
+    pub fn new(address: Addr) -> Self {
+        Self(address)
+    }
+
     pub fn addr(&self) -> Addr {
         self.0.clone()
     }
@@ -45,6 +49,10 @@ impl LiquidityHelper {
 }
 
 impl LiquidityHelperUnchecked {
+    pub fn new(addr: String) -> Self {
+        Self(addr)
+    }
+
     pub fn check(&self, api: &dyn Api) -> StdResult<LiquidityHelper> {
         Ok(LiquidityHelperBase(api.addr_validate(&self.0)?))
     }
