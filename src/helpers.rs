@@ -45,6 +45,10 @@ impl LiquidityHelper {
 }
 
 impl LiquidityHelperUnchecked {
+    pub fn new(addr: String) -> Self {
+        Self(addr)
+    }
+
     pub fn check(&self, api: &dyn Api) -> StdResult<LiquidityHelper> {
         Ok(LiquidityHelperBase(api.addr_validate(&self.0)?))
     }
