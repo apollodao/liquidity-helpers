@@ -1,8 +1,9 @@
+use apollo_utils::assets::separate_natives_and_cw20s;
 use cw_asset::AssetList;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::{to_binary, Addr, Api, Binary, CosmosMsg, StdResult, Uint128, WasmMsg};
+use cosmwasm_std::{to_binary, Addr, Api, Binary, Coin, CosmosMsg, StdResult, Uint128, WasmMsg};
 
 use crate::msg::ExecuteMsg;
 
@@ -24,12 +25,12 @@ impl LiquidityHelper {
         self.0.clone()
     }
 
-    pub fn call<T: Into<ExecuteMsg>>(&self, msg: T) -> StdResult<CosmosMsg> {
+    pub fn call<T: Into<ExecuteMsg>>(&self, msg: T, funds: Vec<Coin>) -> StdResult<CosmosMsg> {
         let msg = to_binary(&msg.into())?;
         Ok(WasmMsg::Execute {
             contract_addr: self.addr().into(),
             msg,
-            funds: vec![],
+            funds,
         }
         .into())
     }
@@ -40,11 +41,15 @@ impl LiquidityHelper {
         min_out: Uint128,
         pool: Binary,
     ) -> StdResult<CosmosMsg> {
-        self.call(ExecuteMsg::BalancingProvideLiquidity {
-            assets: assets.into(),
-            min_out,
-            pool,
-        })
+        let (funds, _) = separate_natives_and_cw20s(&assets);
+        self.call(
+            ExecuteMsg::BalancingProvideLiquidity {
+                assets: assets.into(),
+                min_out,
+                pool,
+            },
+            funds,
+        )
     }
 }
 
