@@ -1,4 +1,7 @@
-use cosmwasm_std::{to_binary, Addr, Coin, Uint128};
+use std::vec;
+
+use cosmwasm_std::{to_binary, Addr, Coin, StdResult, Uint128};
+use cw_asset::{Asset, AssetInfo, AssetList};
 use cw_dex::osmosis::OsmosisPool;
 use cw_it::app::App as RpcRunner;
 use cw_it::Cli;
@@ -7,6 +10,8 @@ use osmosis_testing::{
     cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse, Account, Gamm, Module,
     OsmosisTestApp, Runner, SigningAccount, Wasm,
 };
+
+use test_case::test_case;
 
 pub const WASM_FILE: &str = "artifacts/osmosis_liquidity_helper.wasm";
 const TEST_CONFIG_PATH: &str = "tests/configs/osmosis.yaml";
@@ -32,9 +37,29 @@ fn merge_coins(coins: &[&[Coin]]) -> Vec<Coin> {
     merged
 }
 
-#[test]
+const ONE: Uint128 = Uint128::one();
+
+fn assets_native(first: &str, second: Option<&str>, amount: u128) -> Vec<Coin> {
+    if let Some(denom) = second {
+        vec![Coin::new(amount, first), Coin::new(amount, denom)]
+    } else {
+        vec![Coin::new(amount, first)]
+    }
+}
+
+fn assets_cw20(amount: u128) -> AssetList {
+    vec![
+        Asset::cw20(Addr::unchecked("foo"), amount),
+        Asset::cw20(Addr::unchecked("bar"), amount),
+    ]
+    .into()
+}
+
+#[test_case(assets_native("uatom", Some("uosmo"), 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "LocalOsmosis: Balanced native assets")]
+#[test_case(assets_native("uatom", None, 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "LocalOsmosis: Single native asset")]
+#[test_case(assets_cw20(100_000), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "LocalOsmosis: Non-native assets")]
 /// Runs all tests against LocalOsmosis
-pub fn test_with_localosmosis() {
+pub fn test_with_localosmosis(assets: AssetList, pool_liquidity: Vec<Coin>, min_out: Uint128) {
     let docker: Cli = Cli::default();
     let app = RpcRunner::new(TEST_CONFIG_PATH, &docker);
 
@@ -44,12 +69,14 @@ pub fn test_with_localosmosis() {
         .into_values()
         .collect::<Vec<_>>();
 
-    test_balancing_provide_liquidity(&app, accs);
+    test_balancing_provide_liquidity(&app, accs, assets.into(), pool_liquidity, min_out);
 }
 
-#[test]
+#[test_case(assets_native("uatom", Some("uosmo"), 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "Bindings: Balanced native assets")]
+#[test_case(assets_native("uatom", None, 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "Bindings: Single native asset")]
+#[test_case(assets_cw20(100_000), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "Bindings: Non-native assets")]
 /// Runs all tests against the Osmosis bindings
-pub fn test_with_osmosis_bindings() {
+pub fn test_with_osmosis_bindings(assets: AssetList, pool_liquidity: Vec<Coin>, min_out: Uint128) {
     let app = OsmosisTestApp::default();
 
     let accs = app
@@ -62,7 +89,7 @@ pub fn test_with_osmosis_bindings() {
         )
         .unwrap();
 
-    test_balancing_provide_liquidity(&app, accs);
+    test_balancing_provide_liquidity(&app, accs, assets.into(), pool_liquidity, min_out);
 }
 
 /// Instantiates the liquidity helper contract
@@ -102,7 +129,13 @@ where
 }
 
 /// Tests the BalancingProvideLiquidity message
-pub fn test_balancing_provide_liquidity<R>(app: &R, accs: Vec<SigningAccount>)
+pub fn test_balancing_provide_liquidity<R>(
+    app: &R,
+    accs: Vec<SigningAccount>,
+    assets: AssetList,
+    pool_liquidity: Vec<Coin>,
+    min_out: Uint128,
+) -> StdResult<()>
 where
     R: for<'a> Runner<'a>,
 {
@@ -110,7 +143,6 @@ where
     let gamm = Gamm::new(app);
 
     // Create 1:1 pool
-    let pool_liquidity = vec![Coin::new(1_000_000, "uatom"), Coin::new(1_000_000, "uosmo")];
     let pool_id = gamm
         .create_basic_pool(&pool_liquidity, &accs[0])
         .unwrap()
@@ -120,14 +152,8 @@ where
 
     // Balancing Provide liquidity
     println!("Balancing provide liquidity");
-    let coins = vec![Coin::new(100_000, "uatom"), Coin::new(100_000, "uosmo")];
-    let msgs = liquidity_helper
-        .balancing_provide_liquidity(
-            coins.clone().into(),
-            Uint128::one(),
-            to_binary(&pool).unwrap(),
-            None,
-        )
+    let msg = liquidity_helper
+        .balancing_provide_liquidity(assets.clone(), min_out, to_binary(&pool).unwrap())
         .unwrap();
     let _res = app
         .execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, &accs[1])
@@ -136,8 +162,17 @@ where
     // Check pool liquidity after adding
     let initial_pool_liquidity = vec![Coin::new(1_000_000, "uatom"), Coin::new(1_000_000, "uosmo")];
     let pool_liquidity = gamm.query_pool_reserves(pool_id).unwrap();
-    assert_eq!(
-        pool_liquidity,
-        merge_coins(&[&initial_pool_liquidity, &coins])
-    );
+    if let Some(_) = assets.find(&AssetInfo::Native("uatom".to_string())) {
+        let mut coins: Vec<Coin> = vec![];
+        for a in assets.into_iter() {
+            coins.push(a.try_into()?)
+        }
+        // TODO: remove assert and return something instead
+        assert_eq!(
+            pool_liquidity,
+            merge_coins(&[&initial_pool_liquidity, &coins])
+        );
+    };
+    // TODO: match other cases
+    Ok(())
 }
