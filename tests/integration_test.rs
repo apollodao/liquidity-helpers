@@ -1,11 +1,15 @@
 use cosmwasm_std::{to_binary, Addr, Coin, Uint128};
 use cw_dex::osmosis::OsmosisPool;
+use cw_it::app::App as RpcRunner;
+use cw_it::Cli;
 use osmosis_liquidity_helper::{helpers::LiquidityHelper, msg::InstantiateMsg};
 use osmosis_testing::{
-    cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse, utils::execute_cosmos_msg,
-    Account, Gamm, Module, OsmosisTestApp, Runner, SigningAccount, Wasm,
+    cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse, Account, Gamm, Module,
+    OsmosisTestApp, Runner, SigningAccount, Wasm,
 };
+
 pub const WASM_FILE: &str = "artifacts/osmosis_liquidity_helper.wasm";
+const TEST_CONFIG_PATH: &str = "tests/configs/osmosis.yaml";
 
 /// Merges a list of list of coins into a single list of coins, adding amounts
 /// when denoms are the same.
@@ -29,7 +33,22 @@ fn merge_coins(coins: &[&[Coin]]) -> Vec<Coin> {
 }
 
 #[test]
-/// Runs all tests again the Osmosis bindings
+/// Runs all tests against LocalOsmosis
+pub fn test_with_localosmosis() {
+    let docker: Cli = Cli::default();
+    let app = RpcRunner::new(TEST_CONFIG_PATH, &docker);
+
+    let accs = app
+        .test_config
+        .import_all_accounts()
+        .into_values()
+        .collect::<Vec<_>>();
+
+    test_balancing_provide_liquidity(&app, accs);
+}
+
+#[test]
+/// Runs all tests against the Osmosis bindings
 pub fn test_with_osmosis_bindings() {
     let app = OsmosisTestApp::default();
 
@@ -112,7 +131,9 @@ where
             to_binary(&pool).unwrap(),
         )
         .unwrap();
-    let _res = execute_cosmos_msg::<_, MsgExecuteContractResponse>(app, &msg, &accs[1]).unwrap();
+    let _res = app
+        .execute_cosmos_msgs::<MsgExecuteContractResponse>(&[msg], &accs[1])
+        .unwrap();
 
     // Check pool liquidity after adding
     let initial_pool_liquidity = vec![Coin::new(1_000_000, "uatom"), Coin::new(1_000_000, "uosmo")];

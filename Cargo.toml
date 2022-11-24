@@ -55,5 +55,4 @@ apollo-utils = { git = "https://github.com/apollodao/apollo-utils" }
 [dev-dependencies]
 cw-multi-test = "0.15.1"
 osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git" }
-# osmosis-testing = { path = "../apollo-osmosis-rust/packages/osmosis-testing" }
-# cw-it = { git = "https://github.com/apollodao/cw-it" }
+cw-it = { git = "https://github.com/apollodao/cw-it" }
