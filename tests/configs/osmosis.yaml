@@ -28,5 +28,4 @@ contracts:
     url: "https://github.com/apollodao/osmosis_liquidity_helper.git"
     branch: "master"
     cargo_path: ""
-    artifacts:
-      - osmosis_liquidity_helper.wasm
+    artifact: "osmosis_liquidity_helper.wasm"
