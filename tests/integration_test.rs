@@ -124,7 +124,7 @@ where
     // Balancing Provide liquidity
     println!("Balancing provide liquidity");
     let coins = vec![Coin::new(100_000, "uatom"), Coin::new(100_000, "uosmo")];
-    let msg = liquidity_helper
+    let msgs = liquidity_helper
         .balancing_provide_liquidity(
             coins.clone().into(),
             Uint128::one(),
@@ -132,7 +132,7 @@ where
         )
         .unwrap();
     let _res = app
-        .execute_cosmos_msgs::<MsgExecuteContractResponse>(&[msg], &accs[1])
+        .execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, &accs[1])
         .unwrap();
 
     // Check pool liquidity after adding

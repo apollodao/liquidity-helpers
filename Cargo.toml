@@ -56,6 +56,7 @@ thiserror = { version = "1.0.31" }
 cw-asset = { git = "https://github.com/apollodao/cw-asset" }
 cw-dex = { git = "https://github.com/apollodao/cw-dex" }
 apollo-utils = { git = "https://github.com/apollodao/apollo-utils" }
+cw20 = "0.16"
 
 [dev-dependencies]
 cw-multi-test = "0.15.1"
