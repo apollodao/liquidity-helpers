@@ -44,7 +44,7 @@ source = "git+https://github.com/apollodao/apollo-utils#339da35241ace1d04670dea0
 dependencies = [
  "cosmwasm-std",
  "cw-asset",
- "cw20 0.16.0",
+ "cw20",
 ]
 
 [[package]]
@@ -330,7 +330,7 @@ dependencies = [
  "num-integer",
  "num-traits",
  "serde",
- "time 0.1.44",
+ "time 0.1.45",
  "wasm-bindgen",
  "winapi",
 ]
@@ -616,64 +616,37 @@ dependencies = [
 [[package]]
 name = "cw-asset"
 version = "0.3.0"
-source = "git+https://github.com/apollodao/cw-asset#684eb690ef6a8cce1c54e8bc815979a87539f5e8"
+source = "git+https://github.com/apollodao/cw-asset#5e51773da42ef82faa67576454e8c4b0971097f2"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus 0.16.0",
- "cw20 0.16.0",
+ "cw20",
  "schemars",
  "serde",
-]
-
-[[package]]
-name = "cw-controllers"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64bfeaf55f8dba5646cc3daddce17cd23a60f8e0c3fbacbe6735d287d7a6e33a"
-dependencies = [
- "cosmwasm-std",
- "cw-storage-plus 0.11.1",
- "cw-utils 0.11.1",
- "schemars",
- "serde",
- "thiserror",
 ]
 
 [[package]]
 name = "cw-dex"
 version = "0.0.1"
-source = "git+https://github.com/apollodao/cw-dex#9b7678059ef033dd9a49469321c4bf403e285a48"
+source = "git+https://github.com/apollodao/cw-dex?rev=e0bca311bb6d49cc538d7be4285e0277d40ed4e4#e0bca311bb6d49cc538d7be4285e0277d40ed4e4"
 dependencies = [
  "apollo-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
- "cosmwasm-storage",
  "cw-asset",
  "cw-storage-plus 0.16.0",
  "cw-utils 0.11.1",
  "cw-utils 0.16.0",
- "cw20 0.10.3",
- "cw20 0.16.0",
- "cw20-base 0.16.0",
- "num-bigint",
- "num-rational",
- "num-traits",
- "osmo-bindings",
+ "cw20",
  "osmosis-std 0.12.0 (git+https://github.com/apollodao/osmosis-rust?branch=feat/latest-build)",
- "prost 0.11.2",
- "schemars",
- "serde",
- "stake-cw20",
  "thiserror",
- "uint",
- "wasmswap",
 ]
 
 [[package]]
 name = "cw-it"
 version = "0.1.0"
-source = "git+https://github.com/apollodao/cw-it#6a6fbbb749e0051e946761420a5d91ff7bf0be7c"
+source = "git+https://github.com/apollodao/cw-it#02e6b7998c9575654b96ba7b5c6d54d5f9109b1e"
 dependencies = [
  "anyhow",
  "config",
@@ -712,28 +685,6 @@ dependencies = [
  "schemars",
  "serde",
  "thiserror",
-]
-
-[[package]]
-name = "cw-storage-plus"
-version = "0.10.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3b8b840947313c1a1cccf056836cd79a60b4526bdcd6582995be37dc97be4ae"
-dependencies = [
- "cosmwasm-std",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "cw-storage-plus"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d7ee1963302b0ac2a9d42fe0faec826209c17452bfd36fbfd9d002a88929261"
-dependencies = [
- "cosmwasm-std",
- "schemars",
- "serde",
 ]
 
 [[package]]
@@ -801,42 +752,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cw0"
-version = "0.10.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ae676b6cced78a3d38ad4b01ab4ed66fc78ac191c3c0d6bfd5372cb2efd473b"
-dependencies = [
- "cosmwasm-std",
- "schemars",
- "serde",
- "thiserror",
-]
-
-[[package]]
-name = "cw2"
-version = "0.10.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7002e6f9c1a1ef3915dca704a6306ba00c39495efd928551d6077c734f9a3d8"
-dependencies = [
- "cosmwasm-std",
- "cw-storage-plus 0.10.3",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "cw2"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1d81d7c359d6c1fba3aa83dad7ec6f999e512571380ae62f81257c3db569743"
-dependencies = [
- "cosmwasm-std",
- "cw-storage-plus 0.11.1",
- "schemars",
- "serde",
-]
-
-[[package]]
 name = "cw2"
 version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -864,30 +779,6 @@ dependencies = [
 
 [[package]]
 name = "cw20"
-version = "0.10.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56fc9d54b9b365801beb101a5c0375dceaa5a285bfc14438a7b6007f9d362142"
-dependencies = [
- "cosmwasm-std",
- "cw0",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "cw20"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9671d7edef5608acaf5b2f1e473ee3f501eced2cd4f7392e2106c8cf02ba0720"
-dependencies = [
- "cosmwasm-std",
- "cw-utils 0.11.1",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "cw20"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a45a8794a5dd33b66af34caee52a7beceb690856adcc1682b6e3db88b2cdee62"
@@ -897,56 +788,6 @@ dependencies = [
  "cw-utils 0.16.0",
  "schemars",
  "serde",
-]
-
-[[package]]
-name = "cw20-base"
-version = "0.10.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4f5df0a946a4a58dd4fdb158ff1595c55774beeef76d09f108b547bce572dcf"
-dependencies = [
- "cosmwasm-std",
- "cw-storage-plus 0.10.3",
- "cw0",
- "cw2 0.10.3",
- "cw20 0.10.3",
- "schemars",
- "serde",
- "thiserror",
-]
-
-[[package]]
-name = "cw20-base"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62f6fc8c4cd451b418fa4f1ac2ea70595811fa9d8b4033617fe47953d7a93ceb"
-dependencies = [
- "cosmwasm-std",
- "cw-storage-plus 0.11.1",
- "cw-utils 0.11.1",
- "cw2 0.11.1",
- "cw20 0.11.1",
- "schemars",
- "serde",
- "thiserror",
-]
-
-[[package]]
-name = "cw20-base"
-version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61d826fa1084d026d0abdb54faa5956972efa3a9053473bfcefb5388960aab69"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.16.0",
- "cw-utils 0.16.0",
- "cw2 0.16.0",
- "cw20 0.16.0",
- "schemars",
- "semver",
- "serde",
- "thiserror",
 ]
 
 [[package]]
@@ -2003,17 +1844,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "num-bigint"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f93ab6289c7b344a8a9f60f88d80aa20032336fe78da341afc91c8a2341fc75f"
-dependencies = [
- "autocfg",
- "num-integer",
- "num-traits",
-]
-
-[[package]]
 name = "num-derive"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2031,18 +1861,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "225d3389fb3509a24c93f5c29eb6bde2586b98d9f016636dff58d7c6f7569cd9"
 dependencies = [
  "autocfg",
- "num-traits",
-]
-
-[[package]]
-name = "num-rational"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0638a1c9d0a3c0914158145bc76cff373a75a627e6ecbfb71cbe6f453a5a19b0"
-dependencies = [
- "autocfg",
- "num-bigint",
- "num-integer",
  "num-traits",
 ]
 
@@ -2148,17 +1966,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b7820b9daea5457c9f21c69448905d723fbd21136ccf521748f23fd49e723ee"
 
 [[package]]
-name = "osmo-bindings"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d29a49bf5df140714e63e3a13b6d6c7b7903620c4e3451476bb59cf50c1c7f88"
-dependencies = [
- "cosmwasm-std",
- "schemars",
- "serde",
-]
-
-[[package]]
 name = "osmosis-liquidity-helper"
 version = "0.1.0"
 dependencies = [
@@ -2172,7 +1979,7 @@ dependencies = [
  "cw-multi-test",
  "cw-storage-plus 0.15.1",
  "cw2 0.15.1",
- "cw20 0.16.0",
+ "cw20",
  "osmosis-testing",
  "schemars",
  "serde",
@@ -2197,7 +2004,7 @@ dependencies = [
 [[package]]
 name = "osmosis-std"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust.git#28bf02ac473e901e49d0f1f494f3cf05b41dc96f"
+source = "git+https://github.com/apollodao/osmosis-rust.git#630714a1e8be9d879ea38f6fcf151c117b787007"
 dependencies = [
  "chrono",
  "cosmwasm-std",
@@ -2223,7 +2030,7 @@ dependencies = [
 [[package]]
 name = "osmosis-std-derive"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust.git#28bf02ac473e901e49d0f1f494f3cf05b41dc96f"
+source = "git+https://github.com/apollodao/osmosis-rust.git#630714a1e8be9d879ea38f6fcf151c117b787007"
 dependencies = [
  "itertools",
  "proc-macro2",
@@ -2234,12 +2041,13 @@ dependencies = [
 [[package]]
 name = "osmosis-testing"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust.git#28bf02ac473e901e49d0f1f494f3cf05b41dc96f"
+source = "git+https://github.com/apollodao/osmosis-rust.git#630714a1e8be9d879ea38f6fcf151c117b787007"
 dependencies = [
  "base64",
  "bindgen",
  "cosmrs",
  "cosmwasm-std",
+ "itertools",
  "osmosis-std 0.12.0 (git+https://github.com/apollodao/osmosis-rust.git)",
  "prost 0.11.2",
  "serde",
@@ -3015,25 +2823,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "stake-cw20"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfbd45133276dbe4d6588899f4d4d06fdb9f16921fd1394affc0bccc9a5cb0b6"
-dependencies = [
- "cosmwasm-std",
- "cosmwasm-storage",
- "cw-controllers",
- "cw-storage-plus 0.11.1",
- "cw-utils 0.11.1",
- "cw2 0.11.1",
- "cw20 0.11.1",
- "cw20-base 0.11.1",
- "schemars",
- "serde",
- "thiserror",
-]
-
-[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3284,9 +3073,9 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.1.44"
+version = "0.1.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6db9e6914ab8b1ae1c260a4ae7a49b6c5611b40328a735b21862567685e73255"
+checksum = "1b797afad3f312d1c66a56d11d0316f916356d11bd158fbc6ca6389ff6bf805a"
 dependencies = [
  "libc",
  "wasi 0.10.0+wasi-snapshot-preview1",
@@ -3755,23 +3544,6 @@ name = "wasm-bindgen-shared"
 version = "0.2.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c38c045535d93ec4f0b4defec448e4291638ee608530863b1e2ba115d4fff7f"
-
-[[package]]
-name = "wasmswap"
-version = "1.1.0-beta"
-source = "git+https://github.com/Wasmswap/wasmswap-contracts.git?tag=v1.1.0-beta#2affb3529e6e3f298e90d4f388b8d041ec2c0ad6"
-dependencies = [
- "cosmwasm-std",
- "cosmwasm-storage",
- "cw-storage-plus 0.10.3",
- "cw0",
- "cw2 0.11.1",
- "cw20 0.10.3",
- "cw20-base 0.10.3",
- "schemars",
- "serde",
- "thiserror",
-]
 
 [[package]]
 name = "web-sys"

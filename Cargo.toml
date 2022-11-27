@@ -54,7 +54,7 @@ schemars = "0.8.10"
 serde = { version = "1.0.145", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.31" }
 cw-asset = { git = "https://github.com/apollodao/cw-asset" }
-cw-dex = { git = "https://github.com/apollodao/cw-dex" }
+cw-dex = { git = "https://github.com/apollodao/cw-dex", rev = "e0bca311bb6d49cc538d7be4285e0277d40ed4e4", features = ["osmosis"] }
 apollo-utils = { git = "https://github.com/apollodao/apollo-utils" }
 cw20 = "0.16"
 
