@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{to_binary, Binary, CosmosMsg, Env, StdResult, Uint128, WasmMsg};
+use cosmwasm_std::{to_binary, Addr, Binary, CosmosMsg, Env, StdResult, Uint128, WasmMsg};
 use cw_asset::{Asset, AssetListUnchecked};
 use cw_dex::osmosis::OsmosisPool;
 
@@ -12,13 +12,23 @@ pub enum ExecuteMsg {
         assets: AssetListUnchecked,
         min_out: Uint128,
         pool: Binary,
+        recipient: Option<String>,
     },
     Callback(CallbackMsg),
 }
 
 #[cw_serde]
 pub enum CallbackMsg {
-    SingleSidedJoin { asset: Asset, pool: OsmosisPool },
+    SingleSidedJoin {
+        asset: Asset,
+        pool: OsmosisPool,
+        recipient: Addr,
+    },
+    ReturnLpTokens {
+        pool: OsmosisPool,
+        balance_before: Uint128,
+        recipient: Addr,
+    },
 }
 
 impl CallbackMsg {

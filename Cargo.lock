@@ -629,7 +629,7 @@ dependencies = [
 [[package]]
 name = "cw-dex"
 version = "0.0.1"
-source = "git+https://github.com/apollodao/cw-dex?rev=e0bca311bb6d49cc538d7be4285e0277d40ed4e4#e0bca311bb6d49cc538d7be4285e0277d40ed4e4"
+source = "git+https://github.com/apollodao/cw-dex?rev=acad83b6276ab009aab09021720b89eb0de643c4#acad83b6276ab009aab09021720b89eb0de643c4"
 dependencies = [
  "apollo-utils",
  "cosmwasm-schema",
@@ -646,7 +646,7 @@ dependencies = [
 [[package]]
 name = "cw-it"
 version = "0.1.0"
-source = "git+https://github.com/apollodao/cw-it#02e6b7998c9575654b96ba7b5c6d54d5f9109b1e"
+source = "git+https://github.com/apollodao/cw-it#e55d206ff53ce1a0977525da5831ee77d6884e76"
 dependencies = [
  "anyhow",
  "config",
@@ -2004,7 +2004,7 @@ dependencies = [
 [[package]]
 name = "osmosis-std"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust.git#630714a1e8be9d879ea38f6fcf151c117b787007"
+source = "git+https://github.com/apollodao/osmosis-rust.git#52ca8eaa4b2926fea01a68f4d7e7253ad29d88b3"
 dependencies = [
  "chrono",
  "cosmwasm-std",
@@ -2030,7 +2030,7 @@ dependencies = [
 [[package]]
 name = "osmosis-std-derive"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust.git#630714a1e8be9d879ea38f6fcf151c117b787007"
+source = "git+https://github.com/apollodao/osmosis-rust.git#52ca8eaa4b2926fea01a68f4d7e7253ad29d88b3"
 dependencies = [
  "itertools",
  "proc-macro2",
@@ -2041,7 +2041,7 @@ dependencies = [
 [[package]]
 name = "osmosis-testing"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust.git#630714a1e8be9d879ea38f6fcf151c117b787007"
+source = "git+https://github.com/apollodao/osmosis-rust.git#52ca8eaa4b2926fea01a68f4d7e7253ad29d88b3"
 dependencies = [
  "base64",
  "bindgen",
