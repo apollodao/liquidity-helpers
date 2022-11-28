@@ -1,4 +1,4 @@
-use cosmwasm_std::StdError;
+use cosmwasm_std::{OverflowError, StdError};
 use cw_dex::CwDexError;
 use thiserror::Error;
 
@@ -9,6 +9,9 @@ pub enum ContractError {
 
     #[error("{0}")]
     CwDex(#[from] CwDexError),
+
+    #[error("{0}")]
+    Overflow(#[from] OverflowError),
 
     #[error("Unauthorized")]
     Unauthorized {},

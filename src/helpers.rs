@@ -41,6 +41,7 @@ impl LiquidityHelper {
         assets: AssetList,
         min_out: Uint128,
         pool: Binary,
+        recipient: Option<String>,
     ) -> StdResult<Vec<CosmosMsg>> {
         let (funds, cw20s) = separate_natives_and_cw20s(&assets);
 
@@ -65,6 +66,7 @@ impl LiquidityHelper {
                 assets: assets.into(),
                 min_out,
                 pool,
+                recipient,
             },
             funds,
         )?);

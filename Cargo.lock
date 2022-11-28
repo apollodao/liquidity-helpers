@@ -629,7 +629,7 @@ dependencies = [
 [[package]]
 name = "cw-dex"
 version = "0.0.1"
-source = "git+https://github.com/apollodao/cw-dex?rev=e0bca311bb6d49cc538d7be4285e0277d40ed4e4#e0bca311bb6d49cc538d7be4285e0277d40ed4e4"
+source = "git+https://github.com/apollodao/cw-dex?rev=61f3ccd9543e44459bd7003787cad00a2fe89716#61f3ccd9543e44459bd7003787cad00a2fe89716"
 dependencies = [
  "apollo-utils",
  "cosmwasm-schema",
@@ -646,7 +646,7 @@ dependencies = [
 [[package]]
 name = "cw-it"
 version = "0.1.0"
-source = "git+https://github.com/apollodao/cw-it#02e6b7998c9575654b96ba7b5c6d54d5f9109b1e"
+source = "git+https://github.com/apollodao/cw-it#e55d206ff53ce1a0977525da5831ee77d6884e76"
 dependencies = [
  "anyhow",
  "config",
@@ -2004,7 +2004,7 @@ dependencies = [
 [[package]]
 name = "osmosis-std"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust.git#630714a1e8be9d879ea38f6fcf151c117b787007"
+source = "git+https://github.com/apollodao/osmosis-rust.git#52ca8eaa4b2926fea01a68f4d7e7253ad29d88b3"
 dependencies = [
  "chrono",
  "cosmwasm-std",
@@ -2030,7 +2030,7 @@ dependencies = [
 [[package]]
 name = "osmosis-std-derive"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust.git#630714a1e8be9d879ea38f6fcf151c117b787007"
+source = "git+https://github.com/apollodao/osmosis-rust.git#52ca8eaa4b2926fea01a68f4d7e7253ad29d88b3"
 dependencies = [
  "itertools",
  "proc-macro2",
@@ -2041,7 +2041,7 @@ dependencies = [
 [[package]]
 name = "osmosis-testing"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust.git#630714a1e8be9d879ea38f6fcf151c117b787007"
+source = "git+https://github.com/apollodao/osmosis-rust.git#52ca8eaa4b2926fea01a68f4d7e7253ad29d88b3"
 dependencies = [
  "base64",
  "bindgen",
@@ -2614,9 +2614,9 @@ checksum = "e25dfac463d778e353db5be2449d1cce89bd6fd23c9f1ea21310ce6e5a1b29c4"
 
 [[package]]
 name = "serde"
-version = "1.0.147"
+version = "1.0.148"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d193d69bae983fc11a79df82342761dfbf28a99fc8d203dca4c3c1b590948965"
+checksum = "e53f64bb4ba0191d6d0676e1b141ca55047d83b74f5607e6d8eb88126c52c2dc"
 dependencies = [
  "serde_derive",
 ]
@@ -2650,9 +2650,9 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.147"
+version = "1.0.148"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f1d362ca8fc9c3e3a7484440752472d68a6caa98f1ab81d99b5dfe517cec852"
+checksum = "a55492425aa53521babf6137309e7d34c20bbfbbfcfe2c7f3a047fd1f6b92c0c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2851,9 +2851,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.103"
+version = "1.0.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a864042229133ada95abf3b54fdc62ef5ccabe9515b64717bcb9a1919e59445d"
+checksum = "4ae548ec36cf198c0ef7710d3c230987c2d6d7bd98ad6edc0274462724c585ce"
 dependencies = [
  "proc-macro2",
  "quote",
