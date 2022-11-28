@@ -88,7 +88,7 @@ pub fn execute_balancing_provide_liquidity(
     assert_only_native_coins(&assets)?;
 
     // Unwrap recipient or use caller's address
-    let recipient = recipient.map_or(Ok(info.sender.clone()), |x| deps.api.addr_validate(&x))?;
+    let recipient = recipient.map_or(Ok(info.sender), |x| deps.api.addr_validate(&x))?;
 
     if assets.len() == 1 {
         let lp_token_balance = pool
@@ -131,7 +131,7 @@ pub fn execute_balancing_provide_liquidity(
             if asset.amount > Uint128::zero() {
                 let msg = CallbackMsg::SingleSidedJoin {
                     asset: asset.clone(),
-                    pool: pool.clone(),
+                    pool,
                     recipient: recipient.clone(),
                 }
                 .into_cosmos_msg(&env)?;
@@ -170,7 +170,7 @@ pub fn execute_callback_single_sided_join(
     let res = pool.provide_liquidity(deps.as_ref(), &env, assets, Uint128::one())?;
 
     let callback_msg = CallbackMsg::ReturnLpTokens {
-        pool: pool.clone(),
+        pool,
         balance_before: lp_token_balance,
         recipient,
     }

@@ -50,7 +50,7 @@ impl LiquidityHelper {
             .into_iter()
             .map(|asset| {
                 Ok(CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: asset.address.into(),
+                    contract_addr: asset.address,
                     msg: to_binary(&Cw20ExecuteMsg::IncreaseAllowance {
                         spender: self.addr().into(),
                         amount: asset.amount,

@@ -98,10 +98,7 @@ where
         .data
         .address;
 
-    // let liquidity_helper = LiquidityHelperBase(contract_addr).check(api).unwrap(); // TODO this errors with "human address too long". Why?
-    let liquidity_helper = LiquidityHelper::new(Addr::unchecked(contract_addr));
-
-    liquidity_helper
+    LiquidityHelper::new(Addr::unchecked(contract_addr))
 }
 
 /// Tests the BalancingProvideLiquidity message
