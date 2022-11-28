@@ -1,1 +1,2 @@
+c88d0c4f648b257424813e4aa3e8255e670b9ebdc12656095e5d6d0c94c3fe55  osmosis_liquidity_helper-aarch64.wasm
 c7df2c6d2241dd786e0716423250a5bfc961625683f16953470cde77b83e064c  osmosis_liquidity_helper.wasm
