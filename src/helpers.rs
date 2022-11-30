@@ -90,3 +90,9 @@ impl From<LiquidityHelper> for LiquidityHelperUnchecked {
         LiquidityHelperBase(h.0.to_string())
     }
 }
+
+impl<T> From<T> for LiquidityHelperBase<T> {
+    fn from(x: T) -> Self {
+        LiquidityHelperBase(x)
+    }
+}
