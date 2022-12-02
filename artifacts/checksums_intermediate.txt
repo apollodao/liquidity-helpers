@@ -1,1 +1,1 @@
-fbeaf1aa8449e8d750394032f2e0c25f4053a250a8ef7c25acf293881a948d13  ./target/wasm32-unknown-unknown/release/osmosis_liquidity_helper.wasm
+ef06cd30791f8061bc431abc6f4751451d8d2eb19bf10e740b88902fa318e43d  ./target/wasm32-unknown-unknown/release/osmosis_liquidity_helper.wasm

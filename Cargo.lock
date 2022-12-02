@@ -48,6 +48,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "apollo-utils"
+version = "0.1.0"
+source = "git+https://github.com/apollodao/apollo-utils?rev=e1032d151426fcaf81144a9f21ed52a65a602bf9#e1032d151426fcaf81144a9f21ed52a65a602bf9"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-asset",
+ "cw20",
+]
+
+[[package]]
 name = "async-stream"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -631,7 +642,7 @@ name = "cw-dex"
 version = "0.0.1"
 source = "git+https://github.com/apollodao/cw-dex?rev=de7394fdbc74a3401f4227f81389413991b309e3#de7394fdbc74a3401f4227f81389413991b309e3"
 dependencies = [
- "apollo-utils",
+ "apollo-utils 0.1.0 (git+https://github.com/apollodao/apollo-utils?rev=dd3da52653d3dc350b20b46f363ebcfdcd64aa27)",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-asset",
@@ -1969,7 +1980,7 @@ checksum = "9b7820b9daea5457c9f21c69448905d723fbd21136ccf521748f23fd49e723ee"
 name = "osmosis-liquidity-helper"
 version = "0.1.0"
 dependencies = [
- "apollo-utils",
+ "apollo-utils 0.1.0 (git+https://github.com/apollodao/apollo-utils?rev=e1032d151426fcaf81144a9f21ed52a65a602bf9)",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cosmwasm-storage",
