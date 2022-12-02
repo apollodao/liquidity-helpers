@@ -55,7 +55,7 @@ serde = { version = "1.0.145", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.31" }
 cw-asset = { git = "https://github.com/apollodao/cw-asset", rev = "5e51773da42ef82faa67576454e8c4b0971097f2" }
 cw-dex = { git = "https://github.com/apollodao/cw-dex", rev = "de7394fdbc74a3401f4227f81389413991b309e3", features = ["osmosis"] }
-apollo-utils = { git = "https://github.com/apollodao/apollo-utils", rev = "e1032d151426fcaf81144a9f21ed52a65a602bf9" }
+apollo-utils = { git = "https://github.com/apollodao/apollo-utils", rev = "0421a13a2b7cbbce76ea88563a9ef4fce3d1e6ee" }
 cw20 = "0.16"
 
 [dev-dependencies]
