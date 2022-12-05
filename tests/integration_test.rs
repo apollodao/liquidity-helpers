@@ -1,6 +1,6 @@
 use std::vec;
 
-use cosmwasm_std::{to_binary, Addr, Coin, StdError, StdResult, Uint128};
+use cosmwasm_std::{to_binary, Addr, Coin, StdError, Uint128};
 use cw_asset::{Asset, AssetInfo, AssetList};
 use cw_dex::osmosis::OsmosisPool;
 use cw_it::app::App as RpcRunner;
@@ -51,8 +51,14 @@ fn assets_native(first: &str, second: Option<&str>, amount: u128) -> Vec<Coin> {
 
 fn assets_cw20(amount: u128) -> AssetList {
     vec![
-        Asset::cw20(Addr::unchecked("foo"), amount),
-        Asset::cw20(Addr::unchecked("bar"), amount),
+        Asset::cw20(
+            Addr::unchecked("osmo1qzw4p0f7faz00m5xeetnkulvjm6g9ns2qav0kcj"),
+            amount,
+        ),
+        Asset::cw20(
+            Addr::unchecked("osmo1qc4zquc4fs4v0klpgy473vd5njhtj8n3d95287u"),
+            amount,
+        ),
     ]
     .into()
 }
@@ -164,9 +170,13 @@ where
 
     // Balancing Provide liquidity
     println!("Balancing provide liquidity");
-    let msg =
-        liquidity_helper.balancing_provide_liquidity(assets.clone(), min_out, to_binary(&pool)?)?;
-    let _res = app.execute_cosmos_msgs::<MsgExecuteContractResponse>(&[msg], &accs[1])?;
+    let msgs = liquidity_helper.balancing_provide_liquidity(
+        assets.clone(),
+        min_out,
+        to_binary(&pool)?,
+        None,
+    )?;
+    let _res = app.execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, &accs[1])?;
 
     // Test case: Native assets
     if let Some(_) = assets.find(&AssetInfo::Native("uatom".to_string())) {
