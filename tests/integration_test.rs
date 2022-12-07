@@ -39,7 +39,8 @@ fn merge_coins(coins: &[&[Coin]]) -> Vec<Coin> {
 
 const ONE: Uint128 = Uint128::one();
 
-const CW20_ERROR: &str = "failed to execute message; message index: 0: Generic error: addr_validate errored: decoding bech32 failed: invalid bech32 string length 3: execute wasm contract failed";
+// NOTE: I don't think this is the error we want
+const CW20_ERROR: &str = "failed to execute message; message index: 0: contract: not found";
 
 fn assets_native(first: &str, second: Option<&str>, amount: u128) -> Vec<Coin> {
     if let Some(denom) = second {
@@ -52,11 +53,11 @@ fn assets_native(first: &str, second: Option<&str>, amount: u128) -> Vec<Coin> {
 fn assets_cw20(amount: u128) -> AssetList {
     vec![
         Asset::cw20(
-            Addr::unchecked("osmo1qzw4p0f7faz00m5xeetnkulvjm6g9ns2qav0kcj"),
+            Addr::unchecked("osmo14gs9zqh8m49yy9kscjqu9h72exyf295afg6kgk"),
             amount,
         ),
         Asset::cw20(
-            Addr::unchecked("osmo1qc4zquc4fs4v0klpgy473vd5njhtj8n3d95287u"),
+            Addr::unchecked("osmo10qfrpash5g2vk3hppvu45x0g860czur8ff5yx0"),
             amount,
         ),
     ]
@@ -169,38 +170,27 @@ where
     let pool = OsmosisPool::new(pool_id);
 
     // Balancing Provide liquidity
-    println!("Balancing provide liquidity");
     let msgs = liquidity_helper.balancing_provide_liquidity(
         assets.clone(),
         min_out,
         to_binary(&pool)?,
         None,
     )?;
+
     let _res = app.execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, &accs[1])?;
 
-    // Test case: Native assets
-    if let Some(_) = assets.find(&AssetInfo::Native("uatom".to_string())) {
-        println!("Native assets");
-        let mut coins: Vec<Coin> = vec![];
-        for a in assets.into_iter() {
-            coins.push(a.try_into()?)
-        }
-        // Check pool liquidity after adding
-        let initial_pool_liquidity =
-            vec![Coin::new(1_000_000, "uatom"), Coin::new(1_000_000, "uosmo")];
-        let pool_liquidity = gamm.query_pool_reserves(pool_id).unwrap();
-        if pool_liquidity == merge_coins(&[&initial_pool_liquidity, &coins]) {
-            Ok(())
-        } else {
-            Err(StdError::generic_err("Wrong pool liquidity").into())
-        }
-    } else if let Some(_) = assets.find(&AssetInfo::Cw20(Addr::unchecked("foo"))) {
-        // TODO should it even get here?
-        println!("Cw20 assets");
-        Ok(())
-    } else {
-        // TODO check pool liquidity?
-        println!("Empty assets");
-        Ok(())
+    // Convert assets to native coins
+    let mut coins: Vec<Coin> = vec![];
+    for a in assets.into_iter() {
+        coins.push(a.try_into()?)
     }
+
+    // Check pool liquidity after adding
+    let initial_pool_liquidity = vec![Coin::new(1_000_000, "uatom"), Coin::new(1_000_000, "uosmo")];
+    let pool_liquidity = gamm.query_pool_reserves(pool_id).unwrap();
+    assert_eq!(
+        pool_liquidity,
+        merge_coins(&[&initial_pool_liquidity, &coins])
+    );
+    Ok(())
 }

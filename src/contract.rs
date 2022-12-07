@@ -2,7 +2,8 @@ use apollo_utils::assets::assert_only_native_coins;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    from_binary, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response, StdResult, Uint128,
+    attr, from_binary, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response, StdResult,
+    Uint128,
 };
 use cw2::set_contract_version;
 use cw_asset::{Asset, AssetList};
@@ -88,24 +89,23 @@ pub fn execute_balancing_provide_liquidity(
     // Unwrap recipient or use caller's address
     let recipient = recipient.map_or(Ok(info.sender), |x| deps.api.addr_validate(&x))?;
 
-    let res = if assets.len() == 1 {
+    let mut event_attrs = vec![attr("assets", assets.to_string())];
+
+    let response = if assets.len() == 1 {
+        event_attrs.push(attr("action", "single_sided_provide_liquidity"));
+
         // Provide single sided
-        let provide_res = pool.provide_liquidity(deps.as_ref(), &env, assets.clone(), min_out)?;
-
-        let event =
-            Event::new("apollo/osmosis-liquidity-helper/execute_balancing_provide_liquidity")
-                .add_attribute("action", "single_sided_provide_liquidity")
-                .add_attribute("assets", assets.to_string());
-
-        provide_res.add_event(event)
+        pool.provide_liquidity(deps.as_ref(), &env, assets.clone(), min_out)?
     } else {
+        event_attrs.push(attr("action", "double_sided_provide_liquidity"));
+
         // Provide as much as possible double sided, and then issue callbacks to
         // provide the remainder single sided
         let (lp_tokens_received, tokens_used) =
             pool.simulate_noswap_join(&deps.querier, &assets)?;
 
         // Get response with msg to provide double sided
-        let mut response =
+        let mut provide_res =
             pool.provide_liquidity(deps.as_ref(), &env, assets.clone(), lp_tokens_received)?;
 
         // Deduct tokens used to get remaining tokens
@@ -123,16 +123,11 @@ pub fn execute_balancing_provide_liquidity(
                     pool,
                 }
                 .into_cosmos_msg(&env)?;
-                response = response.add_message(msg);
+                provide_res = provide_res.add_message(msg);
             }
         }
 
-        let event =
-            Event::new("apollo/osmosis-liquidity-helper/execute_balancing_provide_liquidity")
-                .add_attribute("action", "double_sided_provide_liquidity")
-                .add_attribute("assets", assets.to_string());
-
-        response.add_event(event)
+        provide_res
     };
 
     // Query current contract LP token balance
@@ -148,7 +143,9 @@ pub fn execute_balancing_provide_liquidity(
     }
     .into_cosmos_msg(&env)?;
 
-    Ok(res.add_message(callback_msg))
+    let event = Event::new("apollo/osmosis-liquidity-helper/execute_balancing_provide_liquidity")
+        .add_attributes(event_attrs);
+    Ok(response.add_message(callback_msg).add_event(event))
 }
 
 /// CallbackMsg handler to provide liquidity with the given assets. This needs
