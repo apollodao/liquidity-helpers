@@ -90,28 +90,16 @@ pub fn execute_balancing_provide_liquidity(
     // Unwrap recipient or use caller's address
     let recipient = recipient.map_or(Ok(info.sender), |x| deps.api.addr_validate(&x))?;
 
-    if assets.len() == 1 {
-        let lp_token_balance = pool
-            .lp_token()
-            .query_balance(&deps.querier, env.contract.address.to_string())?;
-
+    let res = if assets.len() == 1 {
         // Provide single sided
         let provide_res = pool.provide_liquidity(deps.as_ref(), &env, assets.clone(), min_out)?;
-
-        // Callback to return LP tokens
-        let callback_msg = CallbackMsg::ReturnLpTokens {
-            pool,
-            balance_before: lp_token_balance,
-            recipient,
-        }
-        .into_cosmos_msg(&env)?;
 
         let event =
             Event::new("apollo/osmosis-liquidity-helper/execute_balancing_provide_liquidity")
                 .add_attribute("action", "single_sided_provide_liquidity")
                 .add_attribute("assets", assets.to_string());
 
-        Ok(provide_res.add_message(callback_msg).add_event(event))
+        provide_res.add_event(event)
     } else {
         // Provide as much as possible double sided, and then issue callbacks to
         // provide the remainder single sided
@@ -144,8 +132,23 @@ pub fn execute_balancing_provide_liquidity(
                 .add_attribute("action", "double_sided_provide_liquidity")
                 .add_attribute("assets", assets.to_string());
 
-        Ok(response.add_event(event))
+        response.add_event(event)
+    };
+
+    // Query current contract LP token balance
+    let lp_token_balance = pool
+        .lp_token()
+        .query_balance(&deps.querier, env.contract.address.to_string())?;
+
+    // Callback to return LP tokens
+    let callback_msg = CallbackMsg::ReturnLpTokens {
+        pool,
+        balance_before: lp_token_balance,
+        recipient,
     }
+    .into_cosmos_msg(&env)?;
+
+    Ok(res.add_message(callback_msg))
 }
 
 /// CallbackMsg handler to provide liquidity with the given assets. This needs
