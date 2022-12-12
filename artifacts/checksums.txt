@@ -1,1 +1,1 @@
-9ddeddad3eb61e1675717d2c2a3e3ddc07eab8bdb124485f221b9abdf629dcb3  osmosis_liquidity_helper.wasm
+1cb1744ce7097426b8b68649c7f30815cb3063ac6b02a5d267a89cede08ebbef  osmosis_liquidity_helper.wasm
