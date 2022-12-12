@@ -2,8 +2,8 @@ use apollo_utils::assets::assert_only_native_coins;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    attr, from_binary, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response, StdResult,
-    Uint128,
+    from_binary, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response, StdError,
+    StdResult, Uint128,
 };
 use cw2::set_contract_version;
 use cw_asset::{Asset, AssetList};
@@ -194,7 +194,7 @@ pub fn execute_callback_return_lp_tokens(
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
-    unimplemented!();
+    Err(StdError::generic_err("Queries are not supported."))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
