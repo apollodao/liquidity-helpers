@@ -1,4 +1,4 @@
-use cosmwasm_std::{OverflowError, StdError};
+use cosmwasm_std::{OverflowError, StdError, Uint128};
 use cw_dex::CwDexError;
 use thiserror::Error;
 
@@ -12,6 +12,12 @@ pub enum ContractError {
 
     #[error("{0}")]
     Overflow(#[from] OverflowError),
+
+    #[error("Insufficient LP tokens. Expected a minumum of {expected} but got {received}")]
+    InsufficientLpTokens {
+        expected: Uint128,
+        received: Uint128,
+    },
 
     #[error("Unauthorized")]
     Unauthorized {},

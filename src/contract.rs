@@ -61,6 +61,7 @@ pub fn execute(
                     pool,
                     balance_before,
                     recipient,
+                    min_out,
                 } => execute_callback_return_lp_tokens(
                     deps,
                     env,
@@ -68,6 +69,7 @@ pub fn execute(
                     pool,
                     balance_before,
                     recipient,
+                    min_out,
                 ),
             }
         }
@@ -140,6 +142,7 @@ pub fn execute_balancing_provide_liquidity(
         pool,
         balance_before: lp_token_balance,
         recipient,
+        min_out,
     }
     .into_cosmos_msg(&env)?;
 
@@ -177,11 +180,21 @@ pub fn execute_callback_return_lp_tokens(
     pool: OsmosisPool,
     balance_before: Uint128,
     recipient: Addr,
+    min_out: Uint128,
 ) -> Result<Response, ContractError> {
     let lp_token = pool.lp_token();
     let lp_token_balance = lp_token.query_balance(&deps.querier, env.contract.address)?;
 
     let return_amount = lp_token_balance.checked_sub(balance_before)?;
+
+    // Assert return_amount is greater than min_out
+    if return_amount < min_out {
+        return Err(ContractError::InsufficientLpTokens {
+            expected: min_out,
+            received: return_amount,
+        });
+    }
+
     let return_asset = Asset::new(lp_token, return_amount);
     let msg = return_asset.transfer_msg(&recipient)?;
 
