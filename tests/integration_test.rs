@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use std::vec;
 
 use cosmwasm_std::{to_binary, Addr, Coin, Uint128};
@@ -6,6 +7,8 @@ use cw_dex::osmosis::OsmosisPool;
 use cw_it::Cli;
 use cw_it::{app::App as RpcRunner, config::TestConfig};
 use osmosis_liquidity_helper::{helpers::LiquidityHelper, msg::InstantiateMsg};
+use osmosis_testing::cosmrs::proto::cosmos::bank::v1beta1::QueryBalanceRequest;
+use osmosis_testing::Bank;
 use osmosis_testing::{
     cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse, Account, Gamm, Module,
     OsmosisTestApp, Runner, RunnerResult, SigningAccount, Wasm,
@@ -38,7 +41,6 @@ fn merge_coins(coins: &[&[Coin]]) -> Vec<Coin> {
 }
 
 const ONE: Uint128 = Uint128::one();
-const CW20_ERROR: &str = "failed to execute message; message index: 0: contract: not found";
 
 fn assets_native(first: &str, second: Option<&str>, amount: u128) -> Vec<Coin> {
     if let Some(denom) = second {
@@ -167,6 +169,7 @@ where
 {
     let liquidity_helper = setup_osmosis_liquidity_provider_tests(app, &accs);
     let gamm = Gamm::new(app);
+    let bank = Bank::new(app);
 
     // Create 1:1 pool
     let pool_id = gamm
@@ -175,6 +178,25 @@ where
         .data
         .pool_id;
     let pool = OsmosisPool::new(pool_id);
+
+    // LP token supply before adding
+    let total_shares = gamm.query_pool(pool_id).unwrap().total_shares.unwrap();
+    let lp_token_supply_before = Uint128::from_str(&total_shares.amount).unwrap();
+    let lp_token_denom = total_shares.denom.clone();
+
+    // Check users LP token balance before
+    let lp_token_balance_before = Uint128::from_str(
+        &bank
+            .query_balance(&QueryBalanceRequest {
+                address: accs[1].address().to_string(),
+                denom: lp_token_denom.clone(),
+            })
+            .unwrap()
+            .balance
+            .unwrap()
+            .amount,
+    )
+    .unwrap();
 
     // Balancing Provide liquidity
     let msgs = liquidity_helper.balancing_provide_liquidity(
@@ -197,5 +219,34 @@ where
         pool_liquidity,
         merge_coins(&[&initial_pool_liquidity, &coins])
     );
+
+    // Make sure caller got all LP tokens
+    let lp_token_supply_after = Uint128::from_str(
+        &gamm
+            .query_pool(pool_id)
+            .unwrap()
+            .total_shares
+            .unwrap()
+            .amount,
+    )
+    .unwrap();
+    let lp_tokens_added = lp_token_supply_after - lp_token_supply_before;
+    let lp_token_balance_after = Uint128::from_str(
+        &bank
+            .query_balance(&QueryBalanceRequest {
+                address: accs[1].address().to_string(),
+                denom: lp_token_denom.clone(),
+            })
+            .unwrap()
+            .balance
+            .unwrap()
+            .amount,
+    )
+    .unwrap();
+    assert_eq!(
+        lp_token_balance_after,
+        lp_token_balance_before + lp_tokens_added
+    );
+
     Ok(())
 }
