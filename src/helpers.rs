@@ -1,5 +1,4 @@
-use apollo_utils::assets::separate_natives_and_cw20s;
-use cw20::Cw20ExecuteMsg;
+use apollo_utils::assets::assert_only_native_coins;
 use cw_asset::AssetList;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -43,25 +42,9 @@ impl LiquidityHelper {
         pool: Binary,
         recipient: Option<String>,
     ) -> StdResult<Vec<CosmosMsg>> {
-        let (funds, cw20s) = separate_natives_and_cw20s(&assets);
+        let funds = assert_only_native_coins(&assets)?;
 
-        // Increase allowance for all cw20s
-        let mut msgs: Vec<CosmosMsg> = cw20s
-            .into_iter()
-            .map(|asset| {
-                Ok(CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: asset.address,
-                    msg: to_binary(&Cw20ExecuteMsg::IncreaseAllowance {
-                        spender: self.addr().into(),
-                        amount: asset.amount,
-                        expires: None,
-                    })?,
-                    funds: vec![],
-                }))
-            })
-            .collect::<StdResult<Vec<_>>>()?;
-
-        msgs.push(self.call(
+        Ok(vec![self.call(
             ExecuteMsg::BalancingProvideLiquidity {
                 assets: assets.into(),
                 min_out,
@@ -69,9 +52,7 @@ impl LiquidityHelper {
                 recipient,
             },
             funds,
-        )?);
-
-        Ok(msgs)
+        )?])
     }
 }
 
