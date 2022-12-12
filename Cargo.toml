@@ -60,6 +60,6 @@ cw20 = "0.16"
 
 [dev-dependencies]
 cw-multi-test = "0.15.1"
-osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git", rev = "52ca8eaa4b2926fea01a68f4d7e7253ad29d88b3" }
-cw-it = { git = "https://github.com/apollodao/cw-it", rev = "64baab334a3982d0b41fbc2810d9e311c14337da" }
+osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git", rev = "68281423c7a19b002e217a7a248bee11e2ab6436" }
+cw-it = { git = "https://github.com/apollodao/cw-it", rev = "30ba816966ef53c9e17824c2ecd9f6210c1a388f" }
 test-case = "2.2.2"

@@ -1,14 +1,14 @@
 use std::vec;
 
-use cosmwasm_std::{to_binary, Addr, Coin, StdError, Uint128};
-use cw_asset::{Asset, AssetInfo, AssetList};
+use cosmwasm_std::{to_binary, Addr, Coin, Uint128};
+use cw_asset::{Asset, AssetList};
 use cw_dex::osmosis::OsmosisPool;
-use cw_it::app::App as RpcRunner;
 use cw_it::Cli;
+use cw_it::{app::App as RpcRunner, config::TestConfig};
 use osmosis_liquidity_helper::{helpers::LiquidityHelper, msg::InstantiateMsg};
 use osmosis_testing::{
     cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse, Account, Gamm, Module,
-    OsmosisTestApp, Runner, RunnerError, RunnerResult, SigningAccount, Wasm,
+    OsmosisTestApp, Runner, RunnerResult, SigningAccount, Wasm,
 };
 
 use test_case::test_case;
@@ -38,8 +38,6 @@ fn merge_coins(coins: &[&[Coin]]) -> Vec<Coin> {
 }
 
 const ONE: Uint128 = Uint128::one();
-
-// NOTE: I don't think this is the error we want
 const CW20_ERROR: &str = "failed to execute message; message index: 0: contract: not found";
 
 fn assets_native(first: &str, second: Option<&str>, amount: u128) -> Vec<Coin> {
@@ -66,7 +64,12 @@ fn assets_cw20(amount: u128) -> AssetList {
 
 #[test_case(assets_native("uatom", Some("uosmo"), 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "LocalOsmosis: Balanced native assets")]
 #[test_case(assets_native("uatom", None, 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "LocalOsmosis: Single native asset")]
-#[test_case(assets_cw20(100_000), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "LocalOsmosis: Non-native assets")]
+#[test_case(assets_native("uosmo", None, 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "LocalOsmosis: Single native asset 2")]
+#[test_case(assets_cw20(100_000), assets_native("uatom", Some("uosmo"), 1_000_000), ONE => matches Err(_); "LocalOsmosis: Non-native assets")]
+#[test_case(vec![Coin::new(3_000, "uatom"), Coin::new(1_000, "uosmo")].into(), assets_native("uatom",Some("uosmo"),1_000_000), ONE; "LocalOsmosis: Unbalanced assets in balanced pool")]
+#[test_case(vec![Coin::new(100, "uatom"), Coin::new(4_000, "uosmo")].into(), assets_native("uatom",Some("uosmo"),1_000_000), ONE; "LocalOsmosis: Unbalanced assets in balanced pool 2")]
+#[test_case(vec![Coin::new(4_800_000, "uatom"), Coin::new(2_000_000, "uosmo")].into(), assets_native("uatom",Some("uosmo"),1_000_000), ONE; "LocalOsmosis: Unbalanced assets in balanced pool, high slippage")]
+#[test_case(vec![Coin::new(1_800_000, "uatom"), Coin::new(2_000_000, "uosmo")].into(), vec![Coin::new(1_000_000, "uatom"),Coin::new(3_000_000,"uosmo")], ONE; "LocalOsmosis: Unbalanced assets in unbalanced pool, high slippage")]
 /// Runs all tests against LocalOsmosis
 pub fn test_with_localosmosis(
     assets: AssetList,
@@ -74,7 +77,8 @@ pub fn test_with_localosmosis(
     min_out: Uint128,
 ) -> RunnerResult<()> {
     let docker: Cli = Cli::default();
-    let app = RpcRunner::new(TEST_CONFIG_PATH, &docker);
+    let test_config = TestConfig::from_yaml(TEST_CONFIG_PATH);
+    let app = RpcRunner::new(test_config, &docker);
 
     let accs = app
         .test_config
@@ -85,11 +89,14 @@ pub fn test_with_localosmosis(
     test_balancing_provide_liquidity(&app, accs, assets.into(), pool_liquidity, min_out)
 }
 
-// TODO add more tests
 #[test_case(assets_native("uatom", Some("uosmo"), 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "Bindings: Balanced native assets")]
 #[test_case(assets_native("uatom", None, 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "Bindings: Single native asset")]
 #[test_case(assets_native("uosmo", None, 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "Bindings: Single native asset 2")]
-#[test_case(assets_cw20(100_000), assets_native("uatom", Some("uosmo"), 1_000_000), ONE => Err(RunnerError::ExecuteError { msg: CW20_ERROR.to_string() }); "Bindings: Non-native assets")]
+#[test_case(assets_cw20(100_000), assets_native("uatom", Some("uosmo"), 1_000_000), ONE => matches Err(_); "Bindings: Non-native assets")]
+#[test_case(vec![Coin::new(3_000, "uatom"), Coin::new(1_000, "uosmo")].into(), assets_native("uatom",Some("uosmo"),1_000_000), ONE; "Bindings: Unbalanced assets in balanced pool")]
+#[test_case(vec![Coin::new(100, "uatom"), Coin::new(4_000, "uosmo")].into(), assets_native("uatom",Some("uosmo"),1_000_000), ONE; "Bindings: Unbalanced assets in balanced pool 2")]
+#[test_case(vec![Coin::new(4_800_000, "uatom"), Coin::new(2_000_000, "uosmo")].into(), assets_native("uatom",Some("uosmo"),1_000_000), ONE; "Bindings: Unbalanced assets in balanced pool, high slippage")]
+#[test_case(vec![Coin::new(1_800_000, "uatom"), Coin::new(2_000_000, "uosmo")].into(), vec![Coin::new(1_000_000, "uatom"),Coin::new(3_000_000,"uosmo")], ONE; "Bindings: Unbalanced assets in unbalanced pool, high slippage")]
 /// Runs all tests against the Osmosis bindings
 pub fn test_with_osmosis_bindings(
     assets: AssetList,
@@ -152,7 +159,7 @@ pub fn test_balancing_provide_liquidity<R>(
     app: &R,
     accs: Vec<SigningAccount>,
     assets: AssetList,
-    pool_liquidity: Vec<Coin>,
+    initial_pool_liquidity: Vec<Coin>,
     min_out: Uint128,
 ) -> RunnerResult<()>
 where
@@ -163,7 +170,7 @@ where
 
     // Create 1:1 pool
     let pool_id = gamm
-        .create_basic_pool(&pool_liquidity, &accs[0])
+        .create_basic_pool(&initial_pool_liquidity, &accs[0])
         .unwrap()
         .data
         .pool_id;
@@ -176,8 +183,7 @@ where
         to_binary(&pool)?,
         None,
     )?;
-
-    let _res = app.execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, &accs[1])?;
+    app.execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, &accs[1])?;
 
     // Convert assets to native coins
     let mut coins: Vec<Coin> = vec![];
@@ -186,7 +192,6 @@ where
     }
 
     // Check pool liquidity after adding
-    let initial_pool_liquidity = vec![Coin::new(1_000_000, "uatom"), Coin::new(1_000_000, "uosmo")];
     let pool_liquidity = gamm.query_pool_reserves(pool_id).unwrap();
     assert_eq!(
         pool_liquidity,
