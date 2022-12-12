@@ -27,6 +27,7 @@ pub enum CallbackMsg {
         pool: OsmosisPool,
         balance_before: Uint128,
         recipient: Addr,
+        min_out: Uint128,
     },
 }
 
