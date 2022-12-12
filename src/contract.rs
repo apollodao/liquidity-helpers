@@ -53,11 +53,9 @@ pub fn execute(
             }
 
             match msg {
-                CallbackMsg::SingleSidedJoin {
-                    asset,
-                    pool,
-                    recipient,
-                } => execute_callback_single_sided_join(deps, env, info, asset, pool, recipient),
+                CallbackMsg::SingleSidedJoin { asset, pool } => {
+                    execute_callback_single_sided_join(deps, env, info, asset, pool)
+                }
                 CallbackMsg::ReturnLpTokens {
                     pool,
                     balance_before,
@@ -114,13 +112,15 @@ pub fn execute_balancing_provide_liquidity(
         assets.deduct_many(&tokens_used)?;
 
         // For each of the remaining tokens, issue a callback to provide
-        // liquidity single sided
+        // liquidity single sided. These must be done as a callbacks, because
+        // the simulation inside pool.provide_liquidity will use the current
+        // reserves, which will be altered by each of the single sided joins,
+        // so the simulations will be incorrect unless we do them one at a time.
         for asset in assets.into_iter() {
             if asset.amount > Uint128::zero() {
                 let msg = CallbackMsg::SingleSidedJoin {
                     asset: asset.clone(),
                     pool,
-                    recipient: recipient.clone(),
                 }
                 .into_cosmos_msg(&env)?;
                 response = response.add_message(msg);
@@ -162,27 +162,15 @@ pub fn execute_callback_single_sided_join(
     _info: MessageInfo,
     asset: Asset,
     pool: OsmosisPool,
-    recipient: Addr,
 ) -> Result<Response, ContractError> {
     let assets = AssetList::from(vec![asset.clone()]);
 
-    let lp_token_balance = pool
-        .lp_token()
-        .query_balance(&deps.querier, env.contract.address.to_string())?;
-
     let res = pool.provide_liquidity(deps.as_ref(), &env, assets, Uint128::one())?;
-
-    let callback_msg = CallbackMsg::ReturnLpTokens {
-        pool,
-        balance_before: lp_token_balance,
-        recipient,
-    }
-    .into_cosmos_msg(&env)?;
 
     let event = Event::new("apollo/osmosis-liquidity-helper/execute_callback_single_sided_join")
         .add_attribute("asset", asset.to_string());
 
-    Ok(res.add_message(callback_msg).add_event(event))
+    Ok(res.add_event(event))
 }
 
 pub fn execute_callback_return_lp_tokens(

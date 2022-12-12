@@ -22,7 +22,6 @@ pub enum CallbackMsg {
     SingleSidedJoin {
         asset: Asset,
         pool: OsmosisPool,
-        recipient: Addr,
     },
     ReturnLpTokens {
         pool: OsmosisPool,
