@@ -2,11 +2,11 @@ use apollo_utils::assets::assert_only_native_coins;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    from_binary, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response, StdError,
+    attr, from_binary, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response, StdError,
     StdResult, Uint128,
 };
 use cw2::set_contract_version;
-use cw_asset::{Asset, AssetList};
+use cw_asset::{Asset, AssetInfo, AssetList};
 use cw_dex::osmosis::OsmosisPool;
 use cw_dex::traits::Pool;
 
@@ -87,6 +87,22 @@ pub fn execute_balancing_provide_liquidity(
 ) -> Result<Response, ContractError> {
     // Assert that only native coins are sent
     assert_only_native_coins(&assets)?;
+
+    // Assert that sent funds match input assets
+    if assets.len() != info.funds.len()
+        || !info.funds.iter().all(|c| {
+            if let Some(a) = assets.find(&AssetInfo::Native(c.denom.to_string())) {
+                a.amount == c.amount
+            } else {
+                false
+            }
+        })
+    {
+        return Err(ContractError::InputTokenMismatch {
+            expected: info.funds.iter().map(|a| a.into()).collect(),
+            received: assets.to_vec(),
+        });
+    }
 
     // Unwrap recipient or use caller's address
     let recipient = recipient.map_or(Ok(info.sender), |x| deps.api.addr_validate(&x))?;

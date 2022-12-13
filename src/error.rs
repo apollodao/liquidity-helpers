@@ -1,4 +1,5 @@
 use cosmwasm_std::{OverflowError, StdError, Uint128};
+use cw_asset::Asset;
 use cw_dex::CwDexError;
 use thiserror::Error;
 
@@ -17,6 +18,12 @@ pub enum ContractError {
     InsufficientLpTokens {
         expected: Uint128,
         received: Uint128,
+    },
+
+    #[error("Received funds don't match input assets. Expected {expected:?} but got {received:?}")]
+    InputTokenMismatch {
+        expected: Vec<Asset>,
+        received: Vec<Asset>,
     },
 
     #[error("Unauthorized")]
