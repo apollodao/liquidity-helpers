@@ -4,7 +4,9 @@ use cw_asset::AssetList;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::{to_binary, Addr, Api, Binary, Coin, CosmosMsg, StdResult, Uint128, WasmMsg};
+use cosmwasm_std::{
+    to_binary, Addr, Api, Binary, Coin, CosmosMsg, Empty, StdResult, Uint128, WasmMsg,
+};
 
 use crate::msg::ExecuteMsg;
 
@@ -26,7 +28,11 @@ impl LiquidityHelper {
         self.0.clone()
     }
 
-    pub fn call<T: Into<ExecuteMsg>>(&self, msg: T, funds: Vec<Coin>) -> StdResult<CosmosMsg> {
+    pub fn call<C: Serialize, T: Into<ExecuteMsg<C>>>(
+        &self,
+        msg: T,
+        funds: Vec<Coin>,
+    ) -> StdResult<CosmosMsg> {
         let msg = to_binary(&msg.into())?;
         Ok(WasmMsg::Execute {
             contract_addr: self.addr().into(),
@@ -62,7 +68,7 @@ impl LiquidityHelper {
             .collect::<StdResult<Vec<_>>>()?;
 
         msgs.push(self.call(
-            ExecuteMsg::BalancingProvideLiquidity {
+            ExecuteMsg::<Empty>::BalancingProvideLiquidity {
                 assets: assets.into(),
                 min_out,
                 pool,

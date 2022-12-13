@@ -6,7 +6,8 @@ use cw_asset::{Asset, AssetList};
 use cw_dex::osmosis::OsmosisPool;
 use cw_it::Cli;
 use cw_it::{app::App as RpcRunner, config::TestConfig};
-use osmosis_liquidity_helper::{helpers::LiquidityHelper, msg::InstantiateMsg};
+use osmosis_liquidity_helper::{msg::InstantiateMsg};
+use liquidity_helper::LiquidityHelper;
 use osmosis_testing::cosmrs::proto::cosmos::bank::v1beta1::QueryBalanceRequest;
 use osmosis_testing::Bank;
 use osmosis_testing::{

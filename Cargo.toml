@@ -1,5 +1,5 @@
 [workspace]
-members = ["contracts/*"]
+members = ["contracts/*", "packages/*"]
 
 [workspace.package]
 authors       = ["Sturdy <sturdy@apollo.farm>"]
@@ -11,29 +11,23 @@ documentation = ""
 keywords      = ["blockchain", "cosmos", "cosmwasm"]
 rust-version  = "1.64.0"
 
-[workspace.metadata.scripts]
-optimize = """docker run --rm -v "$(pwd)":/code \
-  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
-  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-  cosmwasm/workspace-optimizer:0.12.10
-"""
-
 [workspace.dependencies]
-cosmwasm-schema = "1.1.8"
-cosmwasm-std    = "1.1.8"
-cw2             = "1.0.0"
-cw20            = "1.0.0"
-cw-storage-plus = "0.16.0"
-thiserror       = "1.0.31"
-schemars        = "0.8.10"
-serde           = { version = "1.0.145", default-features = false, features = ["derive"] }
-cw-asset        = { git = "https://github.com/apollodao/cw-asset", rev = "5e51773da42ef82faa67576454e8c4b0971097f2" }
-cw-dex          = { git = "https://github.com/apollodao/cw-dex", rev = "19d3c9be9edc8ca48cdeb02c4deecc0b7daed813" }
-apollo-utils    = { git = "https://github.com/apollodao/apollo-utils", rev = "0421a13a2b7cbbce76ea88563a9ef4fce3d1e6ee" }
+cosmwasm-schema  = "1.1.8"
+cosmwasm-std     = "1.1.8"
+cw2              = "1.0.0"
+cw20             = "1.0.0"
+cw-storage-plus  = "0.16.0"
+thiserror        = "1.0.31"
+schemars         = "0.8.10"
+serde            = { version = "1.0.145", default-features = false, features = ["derive"] }
+cw-asset         = { git = "https://github.com/apollodao/cw-asset", rev = "5e51773da42ef82faa67576454e8c4b0971097f2" }
+cw-dex           = { git = "https://github.com/apollodao/cw-dex", rev = "19d3c9be9edc8ca48cdeb02c4deecc0b7daed813" }
+apollo-utils     = { git = "https://github.com/apollodao/apollo-utils", rev = "0421a13a2b7cbbce76ea88563a9ef4fce3d1e6ee" }
+liquidity-helper = { path = "./packages/liquidity-helper" }
 
 # Dev dependencies
 osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git", rev = "68281423c7a19b002e217a7a248bee11e2ab6436" }
-cw-it           = { git = "https://github.com/apollodao/cw-it", rev = "30ba816966ef53c9e17824c2ecd9f6210c1a388f" }
+cw-it           = { git = "https://github.com/apollodao/cw-it", rev = "35406c86b0bfb6e0f70df22d7ab3690a7c7ab59d" }
 test-case       = "2.2.2"
 
 [profile.release]

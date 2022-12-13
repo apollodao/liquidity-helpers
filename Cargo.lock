@@ -59,6 +59,43 @@ dependencies = [
 ]
 
 [[package]]
+name = "astroport"
+version = "0.2.0"
+source = "git+https://github.com/apollodao/astroport?rev=afbf5e70c3d7bf986bebba65609b5e60016f5919#afbf5e70c3d7bf986bebba65609b5e60016f5919"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus",
+ "cw20 0.16.0",
+ "schemars",
+ "serde",
+ "uint",
+]
+
+[[package]]
+name = "astroport-liquidity-helper"
+version = "0.1.0"
+dependencies = [
+ "apollo-utils 0.1.0 (git+https://github.com/apollodao/apollo-utils?rev=0421a13a2b7cbbce76ea88563a9ef4fce3d1e6ee)",
+ "astroport",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-asset",
+ "cw-bigint",
+ "cw-dex",
+ "cw-it",
+ "cw-storage-plus",
+ "cw2 1.0.0",
+ "cw20 1.0.0",
+ "env_logger",
+ "liquidity-helper",
+ "osmosis-testing",
+ "schemars",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "async-stream"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -629,6 +666,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "cw-bigint"
+version = "0.4.3"
+source = "git+https://github.com/apollodao/cw-bigint?rev=c2217a76b08cb65204db407f661298c48b01e763#c2217a76b08cb65204db407f661298c48b01e763"
+dependencies = [
+ "autocfg",
+ "num-integer",
+ "num-traits",
+]
+
+[[package]]
 name = "cw-dex"
 version = "0.0.1"
 source = "git+https://github.com/apollodao/cw-dex?rev=19d3c9be9edc8ca48cdeb02c4deecc0b7daed813#19d3c9be9edc8ca48cdeb02c4deecc0b7daed813"
@@ -643,19 +690,22 @@ dependencies = [
  "cw20 0.16.0",
  "osmosis-std 0.12.0 (git+https://github.com/apollodao/osmosis-rust?rev=52ca8eaa4b2926fea01a68f4d7e7253ad29d88b3)",
  "thiserror",
+ "uint",
 ]
 
 [[package]]
 name = "cw-it"
 version = "0.1.0"
-source = "git+https://github.com/apollodao/cw-it?rev=30ba816966ef53c9e17824c2ecd9f6210c1a388f#30ba816966ef53c9e17824c2ecd9f6210c1a388f"
+source = "git+https://github.com/apollodao/cw-it?rev=35406c86b0bfb6e0f70df22d7ab3690a7c7ab59d#35406c86b0bfb6e0f70df22d7ab3690a7c7ab59d"
 dependencies = [
  "anyhow",
+ "astroport",
  "config",
  "cosmos-sdk-proto 0.15.0",
  "cosmrs",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "cw20 0.16.0",
  "downloader",
  "git2",
  "git2_credentials",
@@ -1734,6 +1784,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
 
 [[package]]
+name = "liquidity-helper"
+version = "0.1.0"
+dependencies = [
+ "apollo-utils 0.1.0 (git+https://github.com/apollodao/apollo-utils?rev=0421a13a2b7cbbce76ea88563a9ef4fce3d1e6ee)",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-asset",
+ "cw20 1.0.0",
+ "schemars",
+ "serde",
+]
+
+[[package]]
 name = "log"
 version = "0.4.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1940,6 +2003,7 @@ dependencies = [
  "cw-it",
  "cw2 1.0.0",
  "cw20 1.0.0",
+ "liquidity-helper",
  "osmosis-testing",
  "schemars",
  "serde",
