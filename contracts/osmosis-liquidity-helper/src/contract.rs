@@ -85,8 +85,13 @@ pub fn execute_balancing_provide_liquidity(
     pool: OsmosisPool,
     recipient: Option<String>,
 ) -> Result<Response, ContractError> {
-    // Assert that only native coins are sent
-    assert_only_native_coins(&assets)?;
+    // Assert that sent funds match input assets
+    if assets != info.funds.clone().into() {
+        return Err(ContractError::InputTokenMismatch {
+            expected: info.funds.iter().map(|a| a.into()).collect(),
+            received: assets.to_vec(),
+        });
+    }
 
     // Unwrap recipient or use caller's address
     let recipient = recipient.map_or(Ok(info.sender), |x| deps.api.addr_validate(&x))?;
