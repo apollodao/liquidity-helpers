@@ -3,7 +3,8 @@ use apollo_utils::responses::merge_responses;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response, StdResult, Uint128,
+    from_binary, to_binary, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response,
+    StdResult, Uint128,
 };
 use cw2::set_contract_version;
 use cw_asset::{Asset, AssetList};
@@ -65,9 +66,7 @@ pub fn execute(
                     assets,
                     min_out,
                     pool,
-                } => execute_callback_provide_liquidity(
-                    deps, env, info, assets, min_out, pool,
-                ),
+                } => execute_callback_provide_liquidity(deps, env, info, assets, min_out, pool),
                 CallbackMsg::ReturnLpTokens {
                     pool,
                     balance_before,
