@@ -1,21 +1,13 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{to_binary, Addr, Binary, CosmosMsg, Env, StdResult, Uint128, WasmMsg};
-use cw_asset::{Asset, AssetListUnchecked};
+use cosmwasm_std::{to_binary, Addr, CosmosMsg, Env, StdResult, Uint128, WasmMsg};
+use cw_asset::Asset;
 use cw_dex::osmosis::OsmosisPool;
+use liquidity_helper::msg::ExecuteMsg as GenericExcuteMsg;
 
 #[cw_serde]
 pub struct InstantiateMsg {}
 
-#[cw_serde]
-pub enum ExecuteMsg {
-    BalancingProvideLiquidity {
-        assets: AssetListUnchecked,
-        min_out: Uint128,
-        pool: Binary,
-        recipient: Option<String>,
-    },
-    Callback(CallbackMsg),
-}
+pub type ExecuteMsg = GenericExcuteMsg<CallbackMsg>;
 
 #[cw_serde]
 pub enum CallbackMsg {

@@ -1,65 +1,41 @@
-[package]
-name = "osmosis-liquidity-helper"
-version = "0.1.0"
-authors = ["Sturdy <sturdy@apollo.farm>"]
-edition = "2021"
+[workspace]
+members = ["contracts/*", "packages/*"]
 
-exclude = [
-  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
-  "contract.wasm",
-  "hash.txt",
-]
+[workspace.package]
+authors       = ["Sturdy <sturdy@apollo.farm>"]
+edition       = "2021"
+license       = "MPL-2.0"
+homepage      = "https://apollo.farm"
+repository    = ""
+documentation = ""
+keywords      = ["blockchain", "cosmos", "cosmwasm"]
+rust-version  = "1.64.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace.dependencies]
+cosmwasm-schema  = "1.1.8"
+cosmwasm-std     = "1.1.8"
+cw2              = "1.0.0"
+cw20             = "1.0.0"
+cw-storage-plus  = "0.16.0"
+thiserror        = "1.0.31"
+schemars         = "0.8.10"
+serde            = { version = "1.0.145", default-features = false, features = ["derive"] }
+cw-asset         = { git = "https://github.com/apollodao/cw-asset", rev = "5e51773da42ef82faa67576454e8c4b0971097f2" }
+cw-dex           = { git = "https://github.com/apollodao/cw-dex", rev = "19d3c9be9edc8ca48cdeb02c4deecc0b7daed813" }
+apollo-utils     = { git = "https://github.com/apollodao/apollo-utils", rev = "0421a13a2b7cbbce76ea88563a9ef4fce3d1e6ee" }
+liquidity-helper = { path = "./packages/liquidity-helper" }
 
-[lib]
-crate-type = ["cdylib", "rlib"]
+# Dev dependencies
+osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git", rev = "68281423c7a19b002e217a7a248bee11e2ab6436" }
+cw-it           = { git = "https://github.com/apollodao/cw-it", rev = "35406c86b0bfb6e0f70df22d7ab3690a7c7ab59d" }
+test-case       = "2.2.2"
 
 [profile.release]
-opt-level = 3
-debug = false
-rpath = false
-lto = true
+codegen-units    = 1
+debug            = false
 debug-assertions = false
-codegen-units = 1
-panic = 'abort'
-incremental = false
-overflow-checks = true
-
-[features]
-# for more explicit tests, cargo test --features=backtraces
-backtraces = ["cosmwasm-std/backtraces"]
-# use library feature to disable all instantiate/execute/query exports
-library = []
-
-[package.metadata.scripts]
-optimize = """docker run --rm -v "$(pwd)":/code \
-  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
-  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-  cosmwasm/rust-optimizer:0.12.10
-"""
-optimize-m1 = """docker run --rm -v "$(pwd)":/code \
-  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
-  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-  -it cosmwasm/rust-optimizer-arm64:0.12.8
-"""
-
-[dependencies]
-cosmwasm-schema = "1.1.3"
-cosmwasm-std = "1.1.3"
-cosmwasm-storage = "1.1.3"
-cw-storage-plus = "0.15.1"
-cw2 = "0.15.1"
-schemars = "0.8.10"
-serde = { version = "1.0.145", default-features = false, features = ["derive"] }
-thiserror = { version = "1.0.31" }
-cw-asset = { git = "https://github.com/apollodao/cw-asset", rev = "5e51773da42ef82faa67576454e8c4b0971097f2" }
-cw-dex = { git = "https://github.com/apollodao/cw-dex", rev = "19d3c9be9edc8ca48cdeb02c4deecc0b7daed813", features = ["osmosis"] }
-apollo-utils = { git = "https://github.com/apollodao/apollo-utils", rev = "0421a13a2b7cbbce76ea88563a9ef4fce3d1e6ee" }
-cw20 = "0.16"
-
-[dev-dependencies]
-cw-multi-test = "0.15.1"
-osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git", rev = "68281423c7a19b002e217a7a248bee11e2ab6436" }
-cw-it = { git = "https://github.com/apollodao/cw-it", rev = "30ba816966ef53c9e17824c2ecd9f6210c1a388f" }
-test-case = "2.2.2"
+incremental      = false
+lto              = true
+opt-level        = 3
+overflow-checks  = true
+rpath            = false

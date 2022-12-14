@@ -1,0 +1,55 @@
+[package]
+name          = "astroport-liquidity-helper"
+description   = "A contract to provide unbalanced liquidity to Astroport pools"
+version       = "0.1.0"
+authors       = { workspace = true }
+edition       = { workspace = true }
+license       = { workspace = true }
+homepage      = { workspace = true }
+repository    = { workspace = true }
+documentation = { workspace = true }
+keywords      = { workspace = true }
+rust-version  = { workspace = true }
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "contract.wasm",
+  "hash.txt",
+]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[package.metadata.scripts]
+optimize = """docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  cosmwasm/rust-optimizer:0.12.10
+"""
+
+[dependencies]
+cosmwasm-schema  = { workspace = true }
+cosmwasm-std     = { workspace = true }
+cw-storage-plus  = { workspace = true }
+cw2              = { workspace = true }
+schemars         = { workspace = true }
+serde            = { workspace = true }
+thiserror        = { workspace = true }
+cw-asset         = { workspace = true }
+cw-dex           = { workspace = true, features = ["astroport"] }
+apollo-utils     = { workspace = true }
+cw20             = { workspace = true }
+liquidity-helper = { workspace = true }
+cw-bigint        = { git = "https://github.com/apollodao/cw-bigint", rev = "c2217a76b08cb65204db407f661298c48b01e763" }
+
+[dev-dependencies]
+osmosis-testing = { workspace = true }
+cw-it           = { workspace = true, features = ["astroport"] }
+astroport       = { git = "https://github.com/apollodao/astroport", rev = "afbf5e70c3d7bf986bebba65609b5e60016f5919" }
+env_logger      = "0.9.0"

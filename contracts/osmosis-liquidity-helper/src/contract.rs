@@ -2,7 +2,7 @@ use apollo_utils::assets::assert_only_native_coins;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    from_binary, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response, StdError,
+    attr, from_binary, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response, StdError,
     StdResult, Uint128,
 };
 use cw2::set_contract_version;

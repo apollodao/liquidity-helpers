@@ -1,0 +1,57 @@
+[package]
+name          = "osmosis-liquidity-helper"
+description   = "A contract to provide unbalanced liquidity to Osmosis pools"
+version       = "0.1.0"
+authors       = { workspace = true }
+edition       = { workspace = true }
+license       = { workspace = true }
+homepage      = { workspace = true }
+repository    = { workspace = true }
+documentation = { workspace = true }
+keywords      = { workspace = true }
+rust-version  = { workspace = true }
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "contract.wasm",
+  "hash.txt",
+]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[package.metadata.scripts]
+optimize = """docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  cosmwasm/rust-optimizer:0.12.10
+"""
+optimize-m1 = """docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  -it cosmwasm/rust-optimizer-arm64:0.12.10
+"""
+
+[dependencies]
+cosmwasm-schema  = { workspace = true }
+cosmwasm-std     = { workspace = true }
+cw2              = { workspace = true }
+schemars         = { workspace = true }
+serde            = { workspace = true }
+thiserror        = { workspace = true }
+cw-asset         = { workspace = true }
+cw-dex           = { workspace = true, features = ["osmosis"] }
+apollo-utils     = { workspace = true }
+cw20             = { workspace = true }
+liquidity-helper = { workspace = true }
+
+[dev-dependencies]
+osmosis-testing = { workspace = true }
+cw-it           = { workspace = true }
+test-case       = { workspace = true }
