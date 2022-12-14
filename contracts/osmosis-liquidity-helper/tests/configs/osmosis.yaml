@@ -1,5 +1,5 @@
 folder: "./tests/configs"
-artifacts_folder: "./artifacts"
+artifacts_folder: "../../artifacts"
 chain_config:
   name: "osmosis"
   chain_id: "localosmosis"

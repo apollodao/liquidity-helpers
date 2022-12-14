@@ -40,19 +40,9 @@ checksum = "216261ddc8289130e551ddcd5ce8a064710c0d064a4d2895c67151c92b5443f6"
 [[package]]
 name = "apollo-utils"
 version = "0.1.0"
-source = "git+https://github.com/apollodao/apollo-utils?rev=0421a13a2b7cbbce76ea88563a9ef4fce3d1e6ee#0421a13a2b7cbbce76ea88563a9ef4fce3d1e6ee"
+source = "git+https://github.com/apollodao/apollo-utils?rev=bfd1abd8cd9716dccad3e74aeb3704cad9f1f41a#bfd1abd8cd9716dccad3e74aeb3704cad9f1f41a"
 dependencies = [
  "cosmwasm-schema",
- "cosmwasm-std",
- "cw-asset",
- "cw20 0.16.0",
-]
-
-[[package]]
-name = "apollo-utils"
-version = "0.1.0"
-source = "git+https://github.com/apollodao/apollo-utils.git?rev=dd3da52653d3dc350b20b46f363ebcfdcd64aa27#dd3da52653d3dc350b20b46f363ebcfdcd64aa27"
-dependencies = [
  "cosmwasm-std",
  "cw-asset",
  "cw20 0.16.0",
@@ -76,7 +66,7 @@ dependencies = [
 name = "astroport-liquidity-helper"
 version = "0.1.0"
 dependencies = [
- "apollo-utils 0.1.0 (git+https://github.com/apollodao/apollo-utils?rev=0421a13a2b7cbbce76ea88563a9ef4fce3d1e6ee)",
+ "apollo-utils",
  "astroport",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -655,7 +645,7 @@ dependencies = [
 [[package]]
 name = "cw-asset"
 version = "0.3.0"
-source = "git+https://github.com/apollodao/cw-asset?rev=5e51773da42ef82faa67576454e8c4b0971097f2#5e51773da42ef82faa67576454e8c4b0971097f2"
+source = "git+https://github.com/apollodao/cw-asset?rev=057fb193013ad4adfc25063b99960972d1d208bc#057fb193013ad4adfc25063b99960972d1d208bc"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -678,9 +668,9 @@ dependencies = [
 [[package]]
 name = "cw-dex"
 version = "0.0.1"
-source = "git+https://github.com/apollodao/cw-dex?rev=19d3c9be9edc8ca48cdeb02c4deecc0b7daed813#19d3c9be9edc8ca48cdeb02c4deecc0b7daed813"
+source = "git+https://github.com/apollodao/cw-dex?rev=b9d18cfbba8aa09ae4ee9459d308cda87ae5ffb3#b9d18cfbba8aa09ae4ee9459d308cda87ae5ffb3"
 dependencies = [
- "apollo-utils 0.1.0 (git+https://github.com/apollodao/apollo-utils.git?rev=dd3da52653d3dc350b20b46f363ebcfdcd64aa27)",
+ "apollo-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-asset",
@@ -696,7 +686,7 @@ dependencies = [
 [[package]]
 name = "cw-it"
 version = "0.1.0"
-source = "git+https://github.com/apollodao/cw-it?rev=35406c86b0bfb6e0f70df22d7ab3690a7c7ab59d#35406c86b0bfb6e0f70df22d7ab3690a7c7ab59d"
+source = "git+https://github.com/apollodao/cw-it?rev=602e1bc3ac61cafcdc87ec971956b333916687d2#602e1bc3ac61cafcdc87ec971956b333916687d2"
 dependencies = [
  "anyhow",
  "astroport",
@@ -1787,7 +1777,7 @@ checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
 name = "liquidity-helper"
 version = "0.1.0"
 dependencies = [
- "apollo-utils 0.1.0 (git+https://github.com/apollodao/apollo-utils?rev=0421a13a2b7cbbce76ea88563a9ef4fce3d1e6ee)",
+ "apollo-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-asset",
@@ -1995,7 +1985,7 @@ checksum = "9b7820b9daea5457c9f21c69448905d723fbd21136ccf521748f23fd49e723ee"
 name = "osmosis-liquidity-helper"
 version = "0.1.0"
 dependencies = [
- "apollo-utils 0.1.0 (git+https://github.com/apollodao/apollo-utils?rev=0421a13a2b7cbbce76ea88563a9ef4fce3d1e6ee)",
+ "apollo-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-asset",
@@ -2014,6 +2004,21 @@ dependencies = [
 [[package]]
 name = "osmosis-std"
 version = "0.12.0"
+source = "git+https://github.com/apollodao/osmosis-rust.git?rev=430236bd63f26d618e11e59709a56c808c4d427c#430236bd63f26d618e11e59709a56c808c4d427c"
+dependencies = [
+ "chrono",
+ "cosmwasm-std",
+ "osmosis-std-derive 0.12.0 (git+https://github.com/apollodao/osmosis-rust.git?rev=430236bd63f26d618e11e59709a56c808c4d427c)",
+ "prost",
+ "prost-types",
+ "schemars",
+ "serde",
+ "serde-cw-value",
+]
+
+[[package]]
+name = "osmosis-std"
+version = "0.12.0"
 source = "git+https://github.com/apollodao/osmosis-rust?rev=52ca8eaa4b2926fea01a68f4d7e7253ad29d88b3#52ca8eaa4b2926fea01a68f4d7e7253ad29d88b3"
 dependencies = [
  "chrono",
@@ -2027,18 +2032,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "osmosis-std"
+name = "osmosis-std-derive"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust.git?rev=68281423c7a19b002e217a7a248bee11e2ab6436#68281423c7a19b002e217a7a248bee11e2ab6436"
+source = "git+https://github.com/apollodao/osmosis-rust.git?rev=430236bd63f26d618e11e59709a56c808c4d427c#430236bd63f26d618e11e59709a56c808c4d427c"
 dependencies = [
- "chrono",
- "cosmwasm-std",
- "osmosis-std-derive 0.12.0 (git+https://github.com/apollodao/osmosis-rust.git?rev=68281423c7a19b002e217a7a248bee11e2ab6436)",
- "prost",
- "prost-types",
- "schemars",
- "serde",
- "serde-cw-value",
+ "itertools",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -2053,27 +2054,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "osmosis-std-derive"
-version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust.git?rev=68281423c7a19b002e217a7a248bee11e2ab6436#68281423c7a19b002e217a7a248bee11e2ab6436"
-dependencies = [
- "itertools",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "osmosis-testing"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust.git?rev=68281423c7a19b002e217a7a248bee11e2ab6436#68281423c7a19b002e217a7a248bee11e2ab6436"
+source = "git+https://github.com/apollodao/osmosis-rust.git?rev=430236bd63f26d618e11e59709a56c808c4d427c#430236bd63f26d618e11e59709a56c808c4d427c"
 dependencies = [
  "base64",
  "bindgen",
  "cosmrs",
  "cosmwasm-std",
  "itertools",
- "osmosis-std 0.12.0 (git+https://github.com/apollodao/osmosis-rust.git?rev=68281423c7a19b002e217a7a248bee11e2ab6436)",
+ "osmosis-std 0.12.0 (git+https://github.com/apollodao/osmosis-rust.git?rev=430236bd63f26d618e11e59709a56c808c4d427c)",
  "prost",
  "serde",
  "serde_json",
@@ -3270,9 +3260,9 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.5.9"
+version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d82e1a7758622a465f8cee077614c73484dac5b836c02ff6a40d5d1010324d7"
+checksum = "1333c76748e868a4d9d1017b5ab53171dfd095f70c712fdb4653a406547f598f"
 dependencies = [
  "serde",
 ]

@@ -17,7 +17,7 @@ use osmosis_testing::{
 
 use test_case::test_case;
 
-pub const WASM_FILE: &str = "artifacts/osmosis_liquidity_helper.wasm";
+pub const WASM_FILE: &str = "../../artifacts/osmosis_liquidity_helper.wasm";
 const TEST_CONFIG_PATH: &str = "tests/configs/osmosis.yaml";
 
 /// Merges a list of list of coins into a single list of coins, adding amounts
@@ -178,7 +178,7 @@ where
         .unwrap()
         .data
         .pool_id;
-    let pool = OsmosisPool::new(pool_id);
+    let pool = OsmosisPool::unchecked(pool_id);
 
     // LP token supply before adding
     let total_shares = gamm.query_pool(pool_id).unwrap().total_shares.unwrap();

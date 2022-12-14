@@ -1,4 +1,3 @@
-use apollo_utils::assets::assert_only_native_coins;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{

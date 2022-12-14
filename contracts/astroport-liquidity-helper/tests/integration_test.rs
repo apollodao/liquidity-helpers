@@ -272,6 +272,10 @@ pub fn test_balancing_provide_liquidity<R>(
         lp_token_addr: Addr::unchecked(uluna_astro_lp_token),
         pair_addr: Addr::unchecked(uluna_astro_pair_addr.clone()),
         pair_type: cw_dex::astroport::msg::PairType::Xyk {},
+        pool_assets: vec![
+            AssetInfo::native("uluna".to_string()),
+            AssetInfo::cw20(Addr::unchecked(&astro_token)),
+        ],
     };
 
     // Increase allowance of astro token for Pair contract
