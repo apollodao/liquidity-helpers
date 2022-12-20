@@ -22,7 +22,7 @@ thiserror        = "1.0.31"
 schemars         = "0.8.10"
 serde            = { version = "1.0.145", default-features = false, features = ["derive"] }
 cw-asset         = { git = "https://github.com/apollodao/cw-asset", rev = "057fb193013ad4adfc25063b99960972d1d208bc" }
-cw-dex           = { git = "https://github.com/apollodao/cw-dex", rev = "b9d18cfbba8aa09ae4ee9459d308cda87ae5ffb3" }
+cw-dex           = { git = "https://github.com/apollodao/cw-dex", rev = "09d95ec900d186236567d094f6f2751d797e3975" }
 apollo-utils     = { git = "https://github.com/apollodao/apollo-utils", rev = "bfd1abd8cd9716dccad3e74aeb3704cad9f1f41a" }
 liquidity-helper = { path = "./packages/liquidity-helper" }
 
