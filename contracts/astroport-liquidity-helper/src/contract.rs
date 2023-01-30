@@ -147,8 +147,7 @@ pub fn execute_balancing_provide_liquidity(
             // Calculate amount of tokens to swap
             let (offer_asset, return_asset) = calc_xyk_balancing_swap(
                 assets_slice,
-                pool_reserves[0].amount,
-                pool_reserves[1].amount,
+                [pool_reserves[0].amount, pool_reserves[1].amount],
                 fee,
             )?;
             // Update balances for liquidity provision

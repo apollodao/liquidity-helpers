@@ -52,8 +52,7 @@ fn bigint_to_uint128(input: BigInt) -> StdResult<Uint128> {
 /// from the swap
 pub fn calc_xyk_balancing_swap(
     assets: [Asset; 2],
-    reserve1: Uint128,
-    reserve2: Uint128,
+    reserves: [Uint128; 2],
     fee: Decimal,
 ) -> StdResult<(Asset, Asset)> {
     // Instead of trying to implement our own big decimal, we just use BigInt
@@ -62,12 +61,12 @@ pub fn calc_xyk_balancing_swap(
     let precision: BigInt = BigInt::from(1_000_000_000u128);
 
     // Make sure there is liquidity in the pool
-    if reserve1.is_zero() || reserve2.is_zero() {
+    if reserves[0].is_zero() || reserves[1].is_zero() {
         return Err(StdError::generic_err("No liquidity in pool"));
     }
 
     // Get ratio of reserves and provided assets
-    let reserve_ratio = Decimal::from_ratio(reserve1, reserve2);
+    let reserve_ratio = Decimal::from_ratio(reserves[0], reserves[1]);
     let asset_ratio = if assets[1].amount.is_zero() {
         Decimal::MAX
     } else {
@@ -75,26 +74,15 @@ pub fn calc_xyk_balancing_swap(
     };
 
     // Check which asset to swap
-    let (offer_balance, ask_balance, offer_asset_info, ask_asset_info, offer_reserve, ask_reserve) =
-        if asset_ratio.gt(&reserve_ratio) {
-            (
-                BigInt::from(assets[0].amount.u128()) * &precision,
-                BigInt::from(assets[1].amount.u128()) * &precision,
-                &assets[0].info,
-                &assets[1].info,
-                BigInt::from(reserve1.u128()) * &precision,
-                BigInt::from(reserve2.u128()) * &precision,
-            )
-        } else {
-            (
-                BigInt::from(assets[1].amount.u128()) * &precision,
-                BigInt::from(assets[0].amount.u128()) * &precision,
-                &assets[1].info,
-                &assets[0].info,
-                BigInt::from(reserve2.u128()) * &precision,
-                BigInt::from(reserve1.u128()) * &precision,
-            )
-        };
+    let (offer_idx, ask_idx) = if asset_ratio.gt(&reserve_ratio) {
+        (0, 1)
+    } else {
+        (1, 0)
+    };
+    let offer_reserve = BigInt::from(reserves[offer_idx].u128()) * &precision;
+    let ask_reserve = BigInt::from(reserves[ask_idx].u128()) * &precision;
+    let offer_balance = BigInt::from(assets[offer_idx].amount.u128()) * &precision;
+    let ask_balance = BigInt::from(assets[ask_idx].amount.u128()) * &precision;
 
     let fee_int = (BigInt::from(fee.atomics().u128()) * &precision) / BigInt::from(10u128.pow(18));
 
@@ -111,7 +99,7 @@ pub fn calc_xyk_balancing_swap(
     let offer_amount = bigint_to_uint128(x / &precision)?;
     let offer_asset = Asset {
         amount: offer_amount,
-        info: offer_asset_info.clone(),
+        info: assets[offer_idx].info.clone(),
     };
 
     // Calculate return amount from swap
@@ -123,7 +111,7 @@ pub fn calc_xyk_balancing_swap(
     )?;
     let return_asset = Asset {
         amount: return_amount,
-        info: ask_asset_info.clone(),
+        info: assets[ask_idx].info.clone(),
     };
 
     Ok((offer_asset, return_asset))
@@ -244,8 +232,6 @@ mod test {
                 info: AssetInfo::native("uosmo".to_string()),
             },
         ];
-        let reserve1 = reserves[0];
-        let reserve2 = reserves[1];
         let offer_asset = assets[offer_asset_idx].clone();
         let ask_asset = assets[1 - offer_asset_idx].clone();
         let offer_reserve = reserves[offer_asset_idx];
@@ -255,11 +241,11 @@ mod test {
         let fee = Decimal::permille(3);
 
         println!("Assets: {:?}", assets);
-        println!("Reserves: {}, {}", reserve1, reserve2);
+        println!("Reserves: {:?}", reserves);
 
         // Calculate swap
         let (swap_asset, return_asset) =
-            calc_xyk_balancing_swap(assets.clone(), reserve1, reserve2, fee).unwrap();
+            calc_xyk_balancing_swap(assets.clone(), reserves, fee).unwrap();
 
         // If ratios are already almost the same, no swap should happen
         if !should_swap {

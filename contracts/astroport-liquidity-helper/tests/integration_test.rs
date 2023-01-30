@@ -210,11 +210,13 @@ pub fn test_calc_xyk_balancing_swap<'a, R>(
             info: AssetInfo::Cw20(Addr::unchecked(&astro_token)),
         },
     ];
-    let reserve1 = Uint128::from(1_000_000_000_000u128);
-    let reserve2 = Uint128::from(3_000_000_000_000u128);
+    let reserves = [
+        Uint128::from(1_000_000_000_000u128),
+        Uint128::from(3_000_000_000_000u128),
+    ];
 
     let (offer_asset, return_asset) =
-        calc_xyk_balancing_swap(assets, reserve1, reserve2, total_fee_rate).unwrap();
+        calc_xyk_balancing_swap(assets, reserves, total_fee_rate).unwrap();
 
     // Simulate swap
     let simulation_result: SimulationResponse = wasm
