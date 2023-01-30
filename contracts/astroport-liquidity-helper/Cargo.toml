@@ -53,3 +53,4 @@ osmosis-testing = { workspace = true }
 cw-it           = { workspace = true, features = ["astroport"] }
 astroport       = { git = "https://github.com/apollodao/astroport", rev = "afbf5e70c3d7bf986bebba65609b5e60016f5919" }
 env_logger      = "0.9.0"
+test-case = "2.2.2"

@@ -82,6 +82,7 @@ dependencies = [
  "osmosis-testing",
  "schemars",
  "serde",
+ "test-case",
  "thiserror",
 ]
 
