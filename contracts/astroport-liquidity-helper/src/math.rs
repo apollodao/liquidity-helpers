@@ -68,7 +68,11 @@ pub fn calc_xyk_balancing_swap(
 
     // Get ratio of reserves and provided assets
     let reserve_ratio = Decimal::from_ratio(reserve1, reserve2);
-    let asset_ratio = Decimal::from_ratio(assets[0].amount, assets[1].amount);
+    let asset_ratio = if assets[1].amount.is_zero() {
+        Decimal::MAX
+    } else {
+        Decimal::from_ratio(assets[0].amount, assets[1].amount)
+    };
 
     // Check which asset to swap
     let (offer_balance, ask_balance, offer_asset_info, ask_asset_info, offer_reserve, ask_reserve) =
