@@ -217,6 +217,13 @@ mod test {
         => panics "No liquidity in pool";
         "Test 7: 0:1 pool ratio, should fail with correct error"
     )]
+    #[test_case(
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(0u128)],
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+        true,
+        0;
+        "Test 8: 1:1 pool ratio, 1:0 ratio of assets"
+    )]
     fn test_calc_xyk_balancing_swap(
         assets: [Uint128; 2],
         reserves: [Uint128; 2],
