@@ -163,20 +163,28 @@ pub fn execute_balancing_provide_liquidity(
                     .map_or_else(|| Uint128::zero(), |y| y.amount)
                     .is_zero()
             }) {
-                // Return any native assets that were received. We don't need
-                // to return any Cw20 assets, because we did not execute the
-                // transferFrom on them.
-                let return_msg = CosmosMsg::Bank(BankMsg::Send {
-                    to_address: info.sender.to_string(),
-                    amount: info.funds,
-                });
-                let event = Event::new(
-                    "apollo/astroport-liquidity-helper/execute_balancing_provide_liquidity",
-                )
-                .add_attribute("action", "No liquidity provided. Zero amount of asset")
-                .add_attribute("assets", assets.to_string())
-                .add_attribute("min_out", min_out);
-                return Ok(Response::new().add_message(return_msg).add_event(event));
+                if min_out.is_zero() {
+                    // If min_out is zero, we can just return the received native
+                    // assets.  We don't need to return any Cw20 assets, because
+                    // we did not execute the transferFrom on them.
+                    let return_msg = CosmosMsg::Bank(BankMsg::Send {
+                        to_address: info.sender.to_string(),
+                        amount: info.funds,
+                    });
+                    let event = Event::new(
+                        "apollo/astroport-liquidity-helper/execute_balancing_provide_liquidity",
+                    )
+                    .add_attribute("action", "No liquidity provided. Zero amount of asset")
+                    .add_attribute("assets", assets.to_string())
+                    .add_attribute("min_out", min_out);
+                    return Ok(Response::new().add_message(return_msg).add_event(event));
+                } else {
+                    // If min_out is not zero, we need to return an error
+                    return Err(ContractError::MinOutNotReceived {
+                        min_out,
+                        received: Uint128::zero(),
+                    });
+                }
             }
 
             let mut response = Response::new();

@@ -378,7 +378,7 @@ pub fn test_balancing_provide_liquidity(
         ))
         .unwrap();
     let msgs = liquidity_helper
-        .balancing_provide_liquidity(assets, Uint128::one(), to_binary(&pool).unwrap(), None)
+        .balancing_provide_liquidity(assets, Uint128::zero(), to_binary(&pool).unwrap(), None)
         .unwrap();
     let _res = app
         .execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, admin)
