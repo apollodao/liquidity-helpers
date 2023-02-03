@@ -209,10 +209,58 @@ pub fn test_calc_xyk_balancing_swap() {
 /// Tests the BalancingProvideLiquidity message
 #[test_case(
     [Uint128::from(1_000_000u128), Uint128::from(2_000_000u128)],
-    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)];
+    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+    true;
     "Test 1: 1:1 ratio, double amount of asset 2"
 )]
-pub fn test_balancing_provide_liquidity(asset_amounts: [Uint128; 2], reserves: [Uint128; 2]) {
+#[test_case(
+    [Uint128::from(1_000_000u128), Uint128::from(2_000_000u128)],
+    [Uint128::from(1_000_000_000_000u128), Uint128::from(5_000_000_000_000u128)],
+    true;
+    "Test 2: 1:5 ratio, double amount of asset 2"
+)]
+#[test_case(
+    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+    [Uint128::from(1_000_000_000_000u128), Uint128::from(3_000_000_000_000u128)],
+    true;
+    "Test 3: 1:3 pool ratio, 1:1 ratio of assets, but a lot of assets compared to pool (high slipage)"
+)]
+#[test_case(
+    [Uint128::from(0u128), Uint128::from(1_000_000_000_000u128)],
+    [Uint128::from(1_000_000_000_000u128), Uint128::from(2_000_000_000_000u128)],
+    true;
+    "Test 4: 1:2 pool ratio, 0:1 ratio of assets"
+)]
+#[test_case(
+    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+    true;
+    "Test 5: 1:1 pool ratio, 1:1 ratio of assets"
+)]
+#[test_case(
+    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+    [Uint128::from(0u128), Uint128::from(0u128)],
+    true
+    => panics "No liquidity in pool";
+    "Test 6: 0:0 pool ratio, should fail with correct error"
+)]
+#[test_case(
+    [Uint128::from(1_000_000_000_000u128), Uint128::from(0u128)],
+    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+    true;
+    "Test 7: 1:1 pool ratio, 1:0 ratio of assets"
+)]
+#[test_case(
+    [Uint128::from(0u128), Uint128::from(3564u128)],
+    [Uint128::from(3450765745u128), Uint128::from(12282531965699u128)],
+    false;
+    "Test 8: Amount of asset less than one microunit of other asset"
+)]
+pub fn test_balancing_provide_liquidity(
+    asset_amounts: [Uint128; 2],
+    reserves: [Uint128; 2],
+    should_provide: bool,
+) {
     let (app, accs, astroport_code_ids) = &setup_with_osmosis_bindings();
     let admin = &accs[0];
     let wasm = Wasm::new(app);
@@ -307,6 +355,7 @@ pub fn test_balancing_provide_liquidity(asset_amounts: [Uint128; 2], reserves: [
     let initial_pool_liquidity: PoolResponse = wasm
         .query(&uluna_astro_pair_addr, &PairQueryMsg::Pool {})
         .unwrap();
+    println!("initial_pool_liquidity: {:?}", initial_pool_liquidity);
     if let AstroAssetInfo::NativeToken { denom: _ } = &initial_pool_liquidity.assets[0].info {
         assert_eq!(initial_pool_liquidity.assets[0].amount, reserves[0]);
         assert_eq!(initial_pool_liquidity.assets[1].amount, reserves[1]);
@@ -331,7 +380,6 @@ pub fn test_balancing_provide_liquidity(asset_amounts: [Uint128; 2], reserves: [
     let msgs = liquidity_helper
         .balancing_provide_liquidity(assets, Uint128::one(), to_binary(&pool).unwrap(), None)
         .unwrap();
-
     let _res = app
         .execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, admin)
         .unwrap();
@@ -341,14 +389,24 @@ pub fn test_balancing_provide_liquidity(asset_amounts: [Uint128; 2], reserves: [
         .query::<_, PoolResponse>(&uluna_astro_pair_addr, &PairQueryMsg::Pool {})
         .unwrap()
         .assets;
-    assert_eq!(pool_liquidity[0].amount, reserves[0] + asset_amounts[0]);
-    assert_eq!(pool_liquidity[1].amount, reserves[1] + asset_amounts[1]);
-
-    // Check asset balances after balancing provide liquidity. Should have used all assets
+    // Check asset balances after balancing provide liquidity.
     let uluna_balance_after = query_token_balance(app, &admin.address(), "uluna");
     let astro_balance_after = query_cw20_balance(app, admin.address(), &astro_token);
-    assert_eq!(uluna_balance_before - uluna_balance_after, asset_amounts[0]);
-    assert_eq!(astro_balance_before - astro_balance_after, asset_amounts[1]);
+    if should_provide {
+        assert_eq!(pool_liquidity[0].amount, reserves[0] + asset_amounts[0]);
+        assert_eq!(pool_liquidity[1].amount, reserves[1] + asset_amounts[1]);
+
+        // Should have used all assets
+        assert_eq!(uluna_balance_before - uluna_balance_after, asset_amounts[0]);
+        assert_eq!(astro_balance_before - astro_balance_after, asset_amounts[1]);
+    } else {
+        assert_eq!(pool_liquidity[0].amount, reserves[0]);
+        assert_eq!(pool_liquidity[1].amount, reserves[1]);
+
+        // Should have returned the assets if providing liquidity was not possible.
+        assert_eq!(uluna_balance_before - uluna_balance_after, Uint128::zero());
+        assert_eq!(astro_balance_before - astro_balance_after, Uint128::zero());
+    }
 }
 
 fn query_token_balance<'a, R>(runner: &'a R, address: &str, denom: &str) -> Uint128
