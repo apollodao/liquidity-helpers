@@ -3,8 +3,8 @@ use apollo_utils::responses::merge_responses;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response,
-    StdResult, Uint128,
+    from_binary, to_binary, Addr, BankMsg, Binary, CosmosMsg, Deps, DepsMut, Env, Event,
+    MessageInfo, Response, StdResult, Uint128,
 };
 use cw2::set_contract_version;
 use cw_asset::{Asset, AssetList};
@@ -98,7 +98,7 @@ pub fn execute_balancing_provide_liquidity(
     let receive_res = receive_assets(&info, &env, &assets)?;
 
     // Unwrap recipient or use caller's address
-    let recipient = recipient.map_or(Ok(info.sender), |x| deps.api.addr_validate(&x))?;
+    let recipient = recipient.map_or(Ok(info.sender.clone()), |x| deps.api.addr_validate(&x))?;
 
     // Check lp token balance before, to pass into callback
     let lp_token_balance = pool
@@ -147,17 +147,49 @@ pub fn execute_balancing_provide_liquidity(
             // Calculate amount of tokens to swap
             let (offer_asset, return_asset) = calc_xyk_balancing_swap(
                 assets_slice,
-                pool_reserves[0].amount,
-                pool_reserves[1].amount,
+                [pool_reserves[0].amount, pool_reserves[1].amount],
                 fee,
             )?;
             // Update balances for liquidity provision
             assets.add(&return_asset)?;
             assets.deduct(&offer_asset)?;
 
+            // If either of the assets are still zero after the swap, we can't
+            // provide liquidity. This can happen if the amount of tokens to swap
+            // is so small that the returned amount of the other asset would be zero.
+            if pool.pool_assets.iter().any(|x| {
+                assets
+                    .find(x)
+                    .map_or_else(|| Uint128::zero(), |y| y.amount)
+                    .is_zero()
+            }) {
+                if min_out.is_zero() {
+                    // If min_out is zero, we can just return the received native
+                    // assets.  We don't need to return any Cw20 assets, because
+                    // we did not execute the transferFrom on them.
+                    let return_msg = CosmosMsg::Bank(BankMsg::Send {
+                        to_address: info.sender.to_string(),
+                        amount: info.funds,
+                    });
+                    let event = Event::new(
+                        "apollo/astroport-liquidity-helper/execute_balancing_provide_liquidity",
+                    )
+                    .add_attribute("action", "No liquidity provided. Zero amount of asset")
+                    .add_attribute("assets", assets.to_string())
+                    .add_attribute("min_out", min_out);
+                    return Ok(Response::new().add_message(return_msg).add_event(event));
+                } else {
+                    // If min_out is not zero, we need to return an error
+                    return Err(ContractError::MinOutNotReceived {
+                        min_out,
+                        received: Uint128::zero(),
+                    });
+                }
+            }
+
             let mut response = Response::new();
             // Create message to swap some of the asset to the other
-            if offer_asset.amount > Uint128::zero() {
+            if offer_asset.amount > Uint128::zero() && return_asset.amount > Uint128::zero() {
                 let swap_res = pool.swap(
                     deps.as_ref(),
                     &env,
