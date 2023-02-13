@@ -1,3 +1,4 @@
+use apollo_cw_asset::{Asset, AssetInfo, AssetList};
 use astroport::asset::{Asset as AstroAsset, AssetInfo as AstroAssetInfo};
 use astroport::factory::{FeeInfoResponse, PairType, QueryMsg as FactoryQueryMsg};
 use astroport::pair::{
@@ -7,7 +8,6 @@ use astroport_liquidity_helper::math::calc_xyk_balancing_swap;
 use astroport_liquidity_helper::msg::InstantiateMsg;
 use cosmwasm_std::{to_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{AllowanceResponse, BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
-use cw_asset::{Asset, AssetInfo, AssetList};
 use cw_dex::astroport::AstroportPool;
 use cw_it::astroport::AstroportContracts;
 use cw_it::astroport::{create_astroport_pair, instantiate_astroport, upload_astroport_contracts};

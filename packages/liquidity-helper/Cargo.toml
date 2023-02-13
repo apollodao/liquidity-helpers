@@ -16,6 +16,6 @@ cosmwasm-schema  = { workspace = true }
 cosmwasm-std     = { workspace = true }
 schemars         = { workspace = true }
 serde            = { workspace = true }
-cw-asset         = { workspace = true }
+apollo-cw-asset  = { workspace = true }
 apollo-utils     = { workspace = true }
 cw20             = { workspace = true }

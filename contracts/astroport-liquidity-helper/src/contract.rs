@@ -1,3 +1,4 @@
+use apollo_cw_asset::{Asset, AssetList};
 use apollo_utils::assets::receive_assets;
 use apollo_utils::responses::merge_responses;
 #[cfg(not(feature = "library"))]
@@ -7,7 +8,6 @@ use cosmwasm_std::{
     MessageInfo, Response, StdResult, Uint128,
 };
 use cw2::set_contract_version;
-use cw_asset::{Asset, AssetList};
 use cw_dex::astroport::helpers::query_fee_info;
 use cw_dex::astroport::msg::PairType;
 use cw_dex::astroport::AstroportPool;

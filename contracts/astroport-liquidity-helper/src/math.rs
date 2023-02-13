@@ -1,7 +1,7 @@
 //! Module containing implementations of calculations needed for swapping
 
+use apollo_cw_asset::Asset;
 use cosmwasm_std::{Decimal, Decimal256, StdError, StdResult, Uint128, Uint256};
-use cw_asset::Asset;
 use cw_bigint::BigInt;
 
 /// Returns square root of a BigInt
@@ -119,8 +119,8 @@ pub fn calc_xyk_balancing_swap(
 
 #[cfg(test)]
 mod test {
+    use apollo_cw_asset::{Asset, AssetInfo};
     use cosmwasm_std::{Decimal, Uint128};
-    use cw_asset::{Asset, AssetInfo};
     use cw_bigint::BigInt;
     use test_case::test_case;
 

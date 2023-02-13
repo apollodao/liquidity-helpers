@@ -1,6 +1,6 @@
+use apollo_cw_asset::AssetListUnchecked;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Binary, Uint128};
-use cw_asset::AssetListUnchecked;
 
 #[cw_serde]
 pub enum ExecuteMsg<C> {

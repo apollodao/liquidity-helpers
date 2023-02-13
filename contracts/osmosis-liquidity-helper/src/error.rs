@@ -1,5 +1,5 @@
+use apollo_cw_asset::Asset;
 use cosmwasm_std::{OverflowError, StdError, Uint128};
-use cw_asset::Asset;
 use cw_dex::CwDexError;
 use thiserror::Error;
 

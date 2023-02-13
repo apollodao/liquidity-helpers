@@ -1,8 +1,8 @@
 use std::str::FromStr;
 use std::vec;
 
+use apollo_cw_asset::{Asset, AssetList};
 use cosmwasm_std::{to_binary, Addr, Coin, Uint128};
-use cw_asset::{Asset, AssetList};
 use cw_dex::osmosis::OsmosisPool;
 use liquidity_helper::LiquidityHelper;
 use osmosis_liquidity_helper::msg::InstantiateMsg;

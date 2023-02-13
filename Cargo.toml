@@ -7,29 +7,29 @@ authors       = ["Sturdy <sturdy@apollo.farm>"]
 edition       = "2021"
 license       = "MPL-2.0"
 homepage      = "https://apollo.farm"
-repository    = ""
-documentation = ""
+repository    = "https://github.com/apollodao/liquidity-helpers"
+documentation = "https://docs.rs/liquidity-helpers"
 keywords      = ["blockchain", "cosmos", "cosmwasm"]
 rust-version  = "1.64.0"
 
 [workspace.dependencies]
-cosmwasm-schema  = "1.1.8"
-cosmwasm-std     = "1.1.8"
-cw2              = "1.0.0"
-cw20             = "1.0.0"
-cw-storage-plus  = "0.16.0"
-thiserror        = "1.0.31"
-schemars         = "0.8.10"
+cosmwasm-schema  = "1.2.1"
+cosmwasm-std     = "1.2.1"
+cw2              = "1.0.1"
+cw20             = "1.0.1"
+cw-storage-plus  = "1.0.1"
+thiserror        = "1.0.38"
+schemars         = "0.8.11"
 serde            = { version = "1.0.145", default-features = false, features = ["derive"] }
-cw-asset         = { git = "https://github.com/apollodao/cw-asset", rev = "057fb193013ad4adfc25063b99960972d1d208bc" }
-cw-dex           = { git = "https://github.com/apollodao/cw-dex", rev = "09d95ec900d186236567d094f6f2751d797e3975" }
-apollo-utils     = { git = "https://github.com/apollodao/apollo-utils", rev = "bfd1abd8cd9716dccad3e74aeb3704cad9f1f41a" }
+apollo-cw-asset  = "0.1.0"
+cw-dex           = { git = "https://github.com/apollodao/cw-dex", branch = "develop" }
+apollo-utils     = "0.1.0"
 liquidity-helper = { path = "./packages/liquidity-helper" }
 
 # Dev dependencies
 osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git", rev = "430236bd63f26d618e11e59709a56c808c4d427c" }
 cw-it           = { git = "https://github.com/apollodao/cw-it", rev = "602e1bc3ac61cafcdc87ec971956b333916687d2" }
-test-case       = "2.2.2"
+test-case       = "3.0.0"
 
 [profile.release]
 codegen-units    = 1
