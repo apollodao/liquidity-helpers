@@ -83,6 +83,7 @@ dependencies = [
  "apollo-cw-asset",
  "apollo-utils",
  "astroport",
+ "astroport-types",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-bigint",
