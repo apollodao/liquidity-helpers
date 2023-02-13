@@ -17,7 +17,8 @@ use osmosis_testing::{
 
 use test_case::test_case;
 
-pub const WASM_FILE: &str = "../../artifacts/osmosis_liquidity_helper.wasm";
+pub const WASM_FILE: &str =
+    "../../target/wasm32-unknown-unknown/release/osmosis_liquidity_helper.wasm";
 const TEST_CONFIG_PATH: &str = "tests/configs/osmosis.yaml";
 
 /// Merges a list of list of coins into a single list of coins, adding amounts
