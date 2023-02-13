@@ -26,7 +26,7 @@ use std::str::FromStr;
 
 const TEST_CONFIG_PATH: &str = "tests/configs/terra.yaml";
 pub const ASTROPORT_LIQUIDITY_HELPER_WASM_FILE: &str =
-    "../../artifacts/astroport_liquidity_helper.wasm";
+    "../../target/wasm32-unknown-unknown/release/astroport_liquidity_helper.wasm";
 
 /// Runs tests against the Osmosis bindings.
 /// This works since there are no big differences between Terra and Osmosis.

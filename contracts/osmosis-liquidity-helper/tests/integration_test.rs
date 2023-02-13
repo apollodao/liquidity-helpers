@@ -4,8 +4,6 @@ use std::vec;
 use cosmwasm_std::{to_binary, Addr, Coin, Uint128};
 use cw_asset::{Asset, AssetList};
 use cw_dex::osmosis::OsmosisPool;
-use cw_it::Cli;
-use cw_it::{app::App as RpcRunner, config::TestConfig};
 use liquidity_helper::LiquidityHelper;
 use osmosis_liquidity_helper::msg::InstantiateMsg;
 use osmosis_testing::cosmrs::proto::cosmos::bank::v1beta1::QueryBalanceRequest;
@@ -17,8 +15,8 @@ use osmosis_testing::{
 
 use test_case::test_case;
 
-pub const WASM_FILE: &str = "../../artifacts/osmosis_liquidity_helper.wasm";
-const TEST_CONFIG_PATH: &str = "tests/configs/osmosis.yaml";
+pub const WASM_FILE: &str =
+    "../../target/wasm32-unknown-unknown/release/osmosis_liquidity_helper.wasm";
 
 /// Merges a list of list of coins into a single list of coins, adding amounts
 /// when denoms are the same.
@@ -63,33 +61,6 @@ fn assets_cw20(amount: u128) -> AssetList {
         ),
     ]
     .into()
-}
-
-#[test_case(assets_native("uatom", Some("uosmo"), 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "LocalOsmosis: Balanced native assets")]
-#[test_case(assets_native("uatom", None, 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "LocalOsmosis: Single native asset")]
-#[test_case(assets_native("uosmo", None, 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "LocalOsmosis: Single native asset 2")]
-#[test_case(assets_cw20(100_000), assets_native("uatom", Some("uosmo"), 1_000_000), ONE => matches Err(_); "LocalOsmosis: Non-native assets")]
-#[test_case(vec![Coin::new(3_000, "uatom"), Coin::new(1_000, "uosmo")].into(), assets_native("uatom",Some("uosmo"),1_000_000), ONE; "LocalOsmosis: Unbalanced assets in balanced pool")]
-#[test_case(vec![Coin::new(100, "uatom"), Coin::new(4_000, "uosmo")].into(), assets_native("uatom",Some("uosmo"),1_000_000), ONE; "LocalOsmosis: Unbalanced assets in balanced pool 2")]
-#[test_case(vec![Coin::new(4_800_000, "uatom"), Coin::new(2_000_000, "uosmo")].into(), assets_native("uatom",Some("uosmo"),1_000_000), ONE; "LocalOsmosis: Unbalanced assets in balanced pool, high slippage")]
-#[test_case(vec![Coin::new(1_800_000, "uatom"), Coin::new(2_000_000, "uosmo")].into(), vec![Coin::new(1_000_000, "uatom"),Coin::new(3_000_000,"uosmo")], ONE; "LocalOsmosis: Unbalanced assets in unbalanced pool, high slippage")]
-/// Runs all tests against LocalOsmosis
-pub fn test_with_localosmosis(
-    assets: AssetList,
-    pool_liquidity: Vec<Coin>,
-    min_out: Uint128,
-) -> RunnerResult<()> {
-    let docker: Cli = Cli::default();
-    let test_config = TestConfig::from_yaml(TEST_CONFIG_PATH);
-    let app = RpcRunner::new(test_config, &docker);
-
-    let accs = app
-        .test_config
-        .import_all_accounts()
-        .into_values()
-        .collect::<Vec<_>>();
-
-    test_balancing_provide_liquidity(&app, accs, assets.into(), pool_liquidity, min_out)
 }
 
 #[test_case(assets_native("uatom", Some("uosmo"), 100_000).into(), assets_native("uatom", Some("uosmo"), 1_000_000), ONE ; "Bindings: Balanced native assets")]
