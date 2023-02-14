@@ -28,7 +28,7 @@ liquidity-helper = { path = "./packages/liquidity-helper" }
 
 # Dev dependencies
 osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git", rev = "430236bd63f26d618e11e59709a56c808c4d427c" }
-cw-it           = { git = "https://github.com/apollodao/cw-it", rev = "602e1bc3ac61cafcdc87ec971956b333916687d2" }
+cw-it           = { git = "https://github.com/apollodao/cw-it", rev = "cc1b973" }
 test-case       = "3.0.0"
 
 [profile.release]
