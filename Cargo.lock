@@ -80,8 +80,6 @@ dependencies = [
  "env_logger",
  "liquidity-helper",
  "osmosis-test-tube",
- "schemars",
- "serde",
  "test-case 2.2.2",
  "thiserror",
 ]
@@ -1862,17 +1860,13 @@ name = "osmosis-liquidity-helper"
 version = "0.1.0"
 dependencies = [
  "apollo-cw-asset",
- "apollo-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-dex",
  "cw-it",
  "cw2",
- "cw20",
  "liquidity-helper",
  "osmosis-test-tube",
- "schemars",
- "serde",
  "test-case 3.0.0",
  "thiserror",
 ]
