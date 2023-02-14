@@ -8,7 +8,7 @@ env:
 
 jobs:
   test:
-    name: Test Suite
+    name: Uint Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -21,14 +21,6 @@ jobs:
           toolchain: 1.65.0
           target: wasm32-unknown-unknown
           override: true
-
-      - name: Compile contracts
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --target wasm32-unknown-unknown --lib --release
-        env:
-          RUST_BACKTRACE: 1
 
       - name: Run tests
         uses: actions-rs/cargo@v1
