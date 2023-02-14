@@ -131,9 +131,7 @@ mod test {
     fn assert_decimal_almost_eq(a: Decimal, b: Decimal) {
         let diff = if a > b { (a - b) / a } else { (b - a) / b };
         if diff > Decimal::permille(1) {
-            println!(
-                "Failed assert decimal almost eq for a: {a}, b: {b}. diff: {diff}"
-            );
+            println!("Failed assert decimal almost eq for a: {a}, b: {b}. diff: {diff}");
             panic!();
         }
     }
@@ -251,8 +249,7 @@ mod test {
         println!("Reserves: {reserves:?}");
 
         // Calculate swap
-        let (swap_asset, return_asset) =
-            calc_xyk_balancing_swap(assets, reserves, fee).unwrap();
+        let (swap_asset, return_asset) = calc_xyk_balancing_swap(assets, reserves, fee).unwrap();
 
         println!("Swap: {swap_asset:?}, Return: {return_asset:?}");
 

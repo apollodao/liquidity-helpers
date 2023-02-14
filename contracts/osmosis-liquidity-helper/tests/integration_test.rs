@@ -2,13 +2,16 @@ use std::str::FromStr;
 use std::vec;
 
 use apollo_cw_asset::{Asset, AssetList};
-use cosmwasm_std::{to_binary, Addr, Coin, Uint128, StdError};
+use cosmwasm_std::{to_binary, Addr, Coin, StdError, Uint128};
 use cw_dex::osmosis::OsmosisPool;
 use liquidity_helper::LiquidityHelper;
 use osmosis_liquidity_helper::msg::InstantiateMsg;
 use osmosis_test_tube::cosmrs::proto::cosmos::bank::v1beta1::QueryBalanceRequest;
 use osmosis_test_tube::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
-use osmosis_test_tube::{Account, Bank, Gamm, Module, OsmosisTestApp, Runner, RunnerError, RunnerResult, SigningAccount, Wasm};
+use osmosis_test_tube::{
+    Account, Bank, Gamm, Module, OsmosisTestApp, Runner, RunnerError, RunnerResult, SigningAccount,
+    Wasm,
+};
 
 use test_case::test_case;
 
@@ -168,18 +171,23 @@ where
     .unwrap();
 
     // Balancing Provide liquidity
-    let msgs = liquidity_helper.balancing_provide_liquidity(
-        assets.clone(),
-        min_out,
-        to_binary(&pool).map_err(|e| RunnerError::GenericError(e.to_string()))?,
-        None,
-    ).map_err(|e| RunnerError::GenericError(e.to_string()))?;
+    let msgs = liquidity_helper
+        .balancing_provide_liquidity(
+            assets.clone(),
+            min_out,
+            to_binary(&pool).map_err(|e| RunnerError::GenericError(e.to_string()))?,
+            None,
+        )
+        .map_err(|e| RunnerError::GenericError(e.to_string()))?;
     app.execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, &accs[1])?;
 
     // Convert assets to native coins
     let mut coins: Vec<Coin> = vec![];
     for a in assets.into_iter() {
-        coins.push(a.try_into().map_err(|e: StdError| RunnerError::GenericError(e.to_string()))?)
+        coins.push(
+            a.try_into()
+                .map_err(|e: StdError| RunnerError::GenericError(e.to_string()))?,
+        )
     }
 
     // Check pool liquidity after adding
