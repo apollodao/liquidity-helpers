@@ -2,20 +2,21 @@
 name          = "liquidity-helper"
 description   = "Helpers and common messaging for liquidity helper contracts"
 version       = "0.1.0"
-authors       = { workspace = true }
+authors       = ["Sturdy <sturdy@apollo.farm>"]
 edition       = { workspace = true }
 license       = { workspace = true }
 homepage      = { workspace = true }
 repository    = { workspace = true }
-documentation = { workspace = true }
+documentation = "https://docs.rs/liquidity-helpers"
 keywords      = { workspace = true }
 rust-version  = { workspace = true }
+readme        = "README.md"
 
 [dependencies]
 cosmwasm-schema  = { workspace = true }
 cosmwasm-std     = { workspace = true }
 schemars         = { workspace = true }
 serde            = { workspace = true }
-cw-asset         = { workspace = true }
+apollo-cw-asset  = { workspace = true }
 apollo-utils     = { workspace = true }
 cw20             = { workspace = true }

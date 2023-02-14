@@ -1,6 +1,6 @@
+use apollo_cw_asset::AssetList;
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{to_binary, Addr, CosmosMsg, Env, StdResult, Uint128, WasmMsg};
-use cw_asset::AssetList;
 use cw_dex::astroport::AstroportPool;
 use liquidity_helper::msg::ExecuteMsg as GenericExecuteMsg;
 

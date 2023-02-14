@@ -1,6 +1,6 @@
+use apollo_cw_asset::AssetList;
 use apollo_utils::assets::separate_natives_and_cw20s;
 use cw20::Cw20ExecuteMsg;
-use cw_asset::AssetList;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

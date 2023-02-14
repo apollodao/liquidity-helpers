@@ -1,26 +1,24 @@
-use astroport::asset::{Asset as AstroAsset, AssetInfo as AstroAssetInfo};
-use astroport::factory::{FeeInfoResponse, PairType, QueryMsg as FactoryQueryMsg};
-use astroport::pair::{
-    ExecuteMsg as PairExecuteMsg, PoolResponse, QueryMsg as PairQueryMsg, SimulationResponse,
-};
+use apollo_cw_asset::{Asset, AssetInfo, AssetList};
 use astroport_liquidity_helper::math::calc_xyk_balancing_swap;
 use astroport_liquidity_helper::msg::InstantiateMsg;
+use astroport_types::asset::{Asset as AstroAsset, AssetInfo as AstroAssetInfo};
+use astroport_types::factory::{FeeInfoResponse, PairType, QueryMsg as FactoryQueryMsg};
+use astroport_types::pair::{
+    ExecuteMsg as PairExecuteMsg, PoolResponse, QueryMsg as PairQueryMsg, SimulationResponse,
+};
 use cosmwasm_std::{to_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{AllowanceResponse, BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
-use cw_asset::{Asset, AssetInfo, AssetList};
 use cw_dex::astroport::AstroportPool;
-use cw_it::astroport::AstroportContracts;
-use cw_it::astroport::{create_astroport_pair, instantiate_astroport, upload_astroport_contracts};
+use cw_it::astroport::{
+    create_astroport_pair, instantiate_astroport, upload_astroport_contracts, AstroportContracts,
+};
 use cw_it::config::TestConfig;
 use liquidity_helper::LiquidityHelper;
-use osmosis_testing::cosmrs::proto::cosmos::bank::v1beta1::QueryBalanceRequest;
+use osmosis_test_tube::cosmrs::proto::cosmos::bank::v1beta1::QueryBalanceRequest;
 use test_case::test_case;
 
-use osmosis_testing::{
-    cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse, Account, Module, Runner,
-    SigningAccount, Wasm,
-};
-use osmosis_testing::{Bank, OsmosisTestApp};
+use osmosis_test_tube::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
+use osmosis_test_tube::{Account, Bank, Module, OsmosisTestApp, Runner, SigningAccount, Wasm};
 use std::collections::HashMap;
 use std::str::FromStr;
 
@@ -292,7 +290,7 @@ pub fn test_balancing_provide_liquidity(
     let pool = AstroportPool {
         lp_token_addr: Addr::unchecked(uluna_astro_lp_token),
         pair_addr: Addr::unchecked(uluna_astro_pair_addr.clone()),
-        pair_type: cw_dex::astroport::msg::PairType::Xyk {},
+        pair_type: astroport_types::factory::PairType::Xyk {},
         pool_assets: vec![
             AssetInfo::native("uluna".to_string()),
             AssetInfo::cw20(Addr::unchecked(&astro_token)),
@@ -355,7 +353,7 @@ pub fn test_balancing_provide_liquidity(
     let initial_pool_liquidity: PoolResponse = wasm
         .query(&uluna_astro_pair_addr, &PairQueryMsg::Pool {})
         .unwrap();
-    println!("initial_pool_liquidity: {:?}", initial_pool_liquidity);
+    println!("initial_pool_liquidity: {initial_pool_liquidity:?}");
     if let AstroAssetInfo::NativeToken { denom: _ } = &initial_pool_liquidity.assets[0].info {
         assert_eq!(initial_pool_liquidity.assets[0].amount, reserves[0]);
         assert_eq!(initial_pool_liquidity.assets[1].amount, reserves[1]);

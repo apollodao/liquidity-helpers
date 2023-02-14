@@ -1,5 +1,7 @@
+use apollo_cw_asset::{Asset, AssetList};
 use apollo_utils::assets::receive_assets;
 use apollo_utils::responses::merge_responses;
+use astroport_types::factory::PairType;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -7,9 +9,8 @@ use cosmwasm_std::{
     MessageInfo, Response, StdResult, Uint128,
 };
 use cw2::set_contract_version;
-use cw_asset::{Asset, AssetList};
 use cw_dex::astroport::helpers::query_fee_info;
-use cw_dex::astroport::msg::PairType;
+
 use cw_dex::astroport::AstroportPool;
 use cw_dex::traits::Pool;
 
@@ -160,7 +161,7 @@ pub fn execute_balancing_provide_liquidity(
             if pool.pool_assets.iter().any(|x| {
                 assets
                     .find(x)
-                    .map_or_else(|| Uint128::zero(), |y| y.amount)
+                    .map_or_else(Uint128::zero, |y| y.amount)
                     .is_zero()
             }) {
                 if min_out.is_zero() {

@@ -1,3 +1,4 @@
+use apollo_cw_asset::{Asset, AssetList};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -5,7 +6,6 @@ use cosmwasm_std::{
     StdResult, Uint128,
 };
 use cw2::set_contract_version;
-use cw_asset::{Asset, AssetList};
 use cw_dex::osmosis::OsmosisPool;
 use cw_dex::traits::Pool;
 

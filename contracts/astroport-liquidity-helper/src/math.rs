@@ -1,7 +1,7 @@
 //! Module containing implementations of calculations needed for swapping
 
+use apollo_cw_asset::Asset;
 use cosmwasm_std::{Decimal, Decimal256, StdError, StdResult, Uint128, Uint256};
-use cw_asset::Asset;
 use cw_bigint::BigInt;
 
 /// Returns square root of a BigInt
@@ -119,26 +119,25 @@ pub fn calc_xyk_balancing_swap(
 
 #[cfg(test)]
 mod test {
+    use apollo_cw_asset::{Asset, AssetInfo};
     use cosmwasm_std::{Decimal, Uint128};
-    use cw_asset::{Asset, AssetInfo};
     use cw_bigint::BigInt;
     use test_case::test_case;
 
     use crate::math::{bigint_sqrt, calc_xyk_balancing_swap};
 
-    /// Assert that two Decimals are almost the same (diff smaller than one permille)
+    /// Assert that two Decimals are almost the same (diff smaller than one
+    /// permille)
     fn assert_decimal_almost_eq(a: Decimal, b: Decimal) {
         let diff = if a > b { (a - b) / a } else { (b - a) / b };
         if diff > Decimal::permille(1) {
-            println!(
-                "Failed assert decimal almost eq for a: {}, b: {}. diff: {}",
-                a, b, diff
-            );
+            println!("Failed assert decimal almost eq for a: {a}, b: {b}. diff: {diff}");
             panic!();
         }
     }
 
-    // Assert that the ratio of the users assets is the same as the pool after the swap
+    // Assert that the ratio of the users assets is the same as the pool after the
+    // swap
     fn assert_asset_ratios_same_after_swap(
         offer_reserve: Uint128,
         ask_reserve: Uint128,
@@ -152,8 +151,7 @@ mod test {
         let reserve_ratio_after_swap =
             Decimal::from_ratio(ask_reserve - return_amount, offer_reserve + offer_amount);
         println!(
-            "asset_ratio_after_swap: {}, reserve_ratio_after_swap: {}",
-            asset_ratio_after_swap, reserve_ratio_after_swap
+            "asset_ratio_after_swap: {asset_ratio_after_swap}, reserve_ratio_after_swap: {reserve_ratio_after_swap}"
         );
         assert_decimal_almost_eq(asset_ratio_after_swap, reserve_ratio_after_swap);
     }
@@ -247,14 +245,13 @@ mod test {
         // Same fee for all test cases
         let fee = Decimal::permille(3);
 
-        println!("Assets: {:?}", assets);
-        println!("Reserves: {:?}", reserves);
+        println!("Assets: {assets:?}");
+        println!("Reserves: {reserves:?}");
 
         // Calculate swap
-        let (swap_asset, return_asset) =
-            calc_xyk_balancing_swap(assets.clone(), reserves, fee).unwrap();
+        let (swap_asset, return_asset) = calc_xyk_balancing_swap(assets, reserves, fee).unwrap();
 
-        println!("Swap: {:?}, Return: {:?}", swap_asset, return_asset);
+        println!("Swap: {swap_asset:?}, Return: {return_asset:?}");
 
         // If ratios are already almost the same, no swap should happen
         if !should_swap {
