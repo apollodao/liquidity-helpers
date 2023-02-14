@@ -7,7 +7,7 @@ edition       = "2021"
 license       = "MPL-2.0"
 homepage      = "https://apollo.farm"
 repository    = "https://github.com/apollodao/liquidity-helpers"
-keywords      = ["blockchain", "cosmos", "cosmwasm"]
+keywords      = ["cosmwasm", "liquidity", "provision", "osmosis", "astroport"]
 rust-version  = "1.64.0"
 
 [workspace.dependencies]
