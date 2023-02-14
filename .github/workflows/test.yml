@@ -8,7 +8,7 @@ env:
 
 jobs:
   test:
-    name: Uint Tests
+    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
