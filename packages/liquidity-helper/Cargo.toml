@@ -10,6 +10,7 @@ repository    = { workspace = true }
 documentation = "https://docs.rs/liquidity-helpers"
 keywords      = { workspace = true }
 rust-version  = { workspace = true }
+readme        = "README.md"
 
 [dependencies]
 cosmwasm-schema  = { workspace = true }
