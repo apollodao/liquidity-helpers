@@ -22,7 +22,7 @@ thiserror        = "1.0.38"
 schemars         = "0.8.11"
 serde            = { version = "1.0.145", default-features = false, features = ["derive"] }
 apollo-cw-asset  = "0.1.0"
-cw-dex           = { git = "https://github.com/apollodao/cw-dex", branch = "develop" }
+cw-dex           = "0.1.0"
 apollo-utils     = "0.1.0"
 liquidity-helper = { path = "./packages/liquidity-helper" }
 
