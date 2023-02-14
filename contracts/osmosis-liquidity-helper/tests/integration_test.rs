@@ -7,10 +7,9 @@ use cw_dex::osmosis::OsmosisPool;
 use liquidity_helper::LiquidityHelper;
 use osmosis_liquidity_helper::msg::InstantiateMsg;
 use osmosis_testing::cosmrs::proto::cosmos::bank::v1beta1::QueryBalanceRequest;
-use osmosis_testing::Bank;
+use osmosis_testing::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
 use osmosis_testing::{
-    cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse, Account, Gamm, Module,
-    OsmosisTestApp, Runner, RunnerResult, SigningAccount, Wasm,
+    Account, Bank, Gamm, Module, OsmosisTestApp, Runner, RunnerResult, SigningAccount, Wasm,
 };
 
 use test_case::test_case;

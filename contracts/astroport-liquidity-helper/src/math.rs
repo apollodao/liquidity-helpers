@@ -126,7 +126,8 @@ mod test {
 
     use crate::math::{bigint_sqrt, calc_xyk_balancing_swap};
 
-    /// Assert that two Decimals are almost the same (diff smaller than one permille)
+    /// Assert that two Decimals are almost the same (diff smaller than one
+    /// permille)
     fn assert_decimal_almost_eq(a: Decimal, b: Decimal) {
         let diff = if a > b { (a - b) / a } else { (b - a) / b };
         if diff > Decimal::permille(1) {
@@ -138,7 +139,8 @@ mod test {
         }
     }
 
-    // Assert that the ratio of the users assets is the same as the pool after the swap
+    // Assert that the ratio of the users assets is the same as the pool after the
+    // swap
     fn assert_asset_ratios_same_after_swap(
         offer_reserve: Uint128,
         ask_reserve: Uint128,

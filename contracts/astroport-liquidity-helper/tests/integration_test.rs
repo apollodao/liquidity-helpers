@@ -9,18 +9,16 @@ use astroport_liquidity_helper::msg::InstantiateMsg;
 use cosmwasm_std::{to_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{AllowanceResponse, BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_dex::astroport::AstroportPool;
-use cw_it::astroport::AstroportContracts;
-use cw_it::astroport::{create_astroport_pair, instantiate_astroport, upload_astroport_contracts};
+use cw_it::astroport::{
+    create_astroport_pair, instantiate_astroport, upload_astroport_contracts, AstroportContracts,
+};
 use cw_it::config::TestConfig;
 use liquidity_helper::LiquidityHelper;
 use osmosis_testing::cosmrs::proto::cosmos::bank::v1beta1::QueryBalanceRequest;
 use test_case::test_case;
 
-use osmosis_testing::{
-    cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse, Account, Module, Runner,
-    SigningAccount, Wasm,
-};
-use osmosis_testing::{Bank, OsmosisTestApp};
+use osmosis_testing::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
+use osmosis_testing::{Account, Bank, Module, OsmosisTestApp, Runner, SigningAccount, Wasm};
 use std::collections::HashMap;
 use std::str::FromStr;
 
