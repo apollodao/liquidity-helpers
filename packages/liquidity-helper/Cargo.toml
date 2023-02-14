@@ -7,7 +7,7 @@ edition       = { workspace = true }
 license       = { workspace = true }
 homepage      = { workspace = true }
 repository    = { workspace = true }
-documentation = { workspace = true }
+documentation = "https://docs.rs/liquidity-helpers"
 keywords      = { workspace = true }
 rust-version  = { workspace = true }
 

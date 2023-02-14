@@ -3,12 +3,10 @@ members = ["contracts/*", "packages/*"]
 resolver = "2"
 
 [workspace.package]
-authors       = ["Sturdy <sturdy@apollo.farm>"]
 edition       = "2021"
 license       = "MPL-2.0"
 homepage      = "https://apollo.farm"
 repository    = "https://github.com/apollodao/liquidity-helpers"
-documentation = "https://docs.rs/liquidity-helpers"
 keywords      = ["blockchain", "cosmos", "cosmwasm"]
 rust-version  = "1.64.0"
 
