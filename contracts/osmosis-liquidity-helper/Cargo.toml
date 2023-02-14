@@ -2,7 +2,7 @@
 name          = "osmosis-liquidity-helper"
 description   = "A contract to provide unbalanced liquidity to Osmosis pools"
 version       = "0.1.0"
-authors       = { workspace = true }
+authors       = ["Sturdy <sturdy@apollo.farm>"]
 edition       = { workspace = true }
 license       = { workspace = true }
 homepage      = { workspace = true }
