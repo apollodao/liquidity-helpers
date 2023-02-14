@@ -15,3 +15,5 @@ artifacts/
 # IDEs
 *.iml
 .idea
+
+*.profraw

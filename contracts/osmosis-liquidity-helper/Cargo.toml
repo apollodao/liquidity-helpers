@@ -52,6 +52,6 @@ cw20             = { workspace = true }
 liquidity-helper = { workspace = true }
 
 [dev-dependencies]
-osmosis-testing = { workspace = true }
+osmosis-test-tube = { workspace = true }
 cw-it           = { workspace = true }
 test-case       = { workspace = true }

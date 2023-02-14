@@ -161,7 +161,7 @@ pub fn execute_balancing_provide_liquidity(
             if pool.pool_assets.iter().any(|x| {
                 assets
                     .find(x)
-                    .map_or_else(|| Uint128::zero(), |y| y.amount)
+                    .map_or_else(Uint128::zero, |y| y.amount)
                     .is_zero()
             }) {
                 if min_out.is_zero() {

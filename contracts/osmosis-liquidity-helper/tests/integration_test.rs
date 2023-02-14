@@ -2,15 +2,13 @@ use std::str::FromStr;
 use std::vec;
 
 use apollo_cw_asset::{Asset, AssetList};
-use cosmwasm_std::{to_binary, Addr, Coin, Uint128};
+use cosmwasm_std::{to_binary, Addr, Coin, Uint128, StdError};
 use cw_dex::osmosis::OsmosisPool;
 use liquidity_helper::LiquidityHelper;
 use osmosis_liquidity_helper::msg::InstantiateMsg;
-use osmosis_testing::cosmrs::proto::cosmos::bank::v1beta1::QueryBalanceRequest;
-use osmosis_testing::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
-use osmosis_testing::{
-    Account, Bank, Gamm, Module, OsmosisTestApp, Runner, RunnerResult, SigningAccount, Wasm,
-};
+use osmosis_test_tube::cosmrs::proto::cosmos::bank::v1beta1::QueryBalanceRequest;
+use osmosis_test_tube::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
+use osmosis_test_tube::{Account, Bank, Gamm, Module, OsmosisTestApp, Runner, RunnerError, RunnerResult, SigningAccount, Wasm};
 
 use test_case::test_case;
 
@@ -88,7 +86,7 @@ pub fn test_with_osmosis_bindings(
         )
         .unwrap();
 
-    test_balancing_provide_liquidity(&app, accs, assets.into(), pool_liquidity, min_out)
+    test_balancing_provide_liquidity(&app, accs, assets, pool_liquidity, min_out)
 }
 
 /// Instantiates the liquidity helper contract
@@ -153,13 +151,13 @@ where
     // LP token supply before adding
     let total_shares = gamm.query_pool(pool_id).unwrap().total_shares.unwrap();
     let lp_token_supply_before = Uint128::from_str(&total_shares.amount).unwrap();
-    let lp_token_denom = total_shares.denom.clone();
+    let lp_token_denom = total_shares.denom;
 
     // Check users LP token balance before
     let lp_token_balance_before = Uint128::from_str(
         &bank
             .query_balance(&QueryBalanceRequest {
-                address: accs[1].address().to_string(),
+                address: accs[1].address(),
                 denom: lp_token_denom.clone(),
             })
             .unwrap()
@@ -173,15 +171,15 @@ where
     let msgs = liquidity_helper.balancing_provide_liquidity(
         assets.clone(),
         min_out,
-        to_binary(&pool)?,
+        to_binary(&pool).map_err(|e| RunnerError::GenericError(e.to_string()))?,
         None,
-    )?;
+    ).map_err(|e| RunnerError::GenericError(e.to_string()))?;
     app.execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, &accs[1])?;
 
     // Convert assets to native coins
     let mut coins: Vec<Coin> = vec![];
     for a in assets.into_iter() {
-        coins.push(a.try_into()?)
+        coins.push(a.try_into().map_err(|e: StdError| RunnerError::GenericError(e.to_string()))?)
     }
 
     // Check pool liquidity after adding
@@ -205,8 +203,8 @@ where
     let lp_token_balance_after = Uint128::from_str(
         &bank
             .query_balance(&QueryBalanceRequest {
-                address: accs[1].address().to_string(),
-                denom: lp_token_denom.clone(),
+                address: accs[1].address(),
+                denom: lp_token_denom,
             })
             .unwrap()
             .balance

@@ -27,7 +27,7 @@ apollo-utils     = "0.1.0"
 liquidity-helper = { path = "./packages/liquidity-helper" }
 
 # Dev dependencies
-osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git", rev = "430236bd63f26d618e11e59709a56c808c4d427c" }
+osmosis-test-tube = { git = "https://github.com/apollodao/test-tube.git", rev = "d2245dfed56329d8c2e84d109a5a01f29d0db0e8" }
 cw-it           = { git = "https://github.com/apollodao/cw-it", rev = "cc1b973" }
 test-case       = "3.0.0"
 
