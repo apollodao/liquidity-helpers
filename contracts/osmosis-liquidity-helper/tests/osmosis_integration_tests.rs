@@ -4,14 +4,11 @@ use std::vec;
 use apollo_cw_asset::{Asset, AssetList};
 use cosmwasm_std::{to_binary, Addr, Coin, StdError, Uint128};
 use cw_dex::osmosis::OsmosisPool;
-use cw_it::{
-    osmosis_std::types::{
-        cosmos::bank::v1beta1::QueryBalanceRequest, cosmwasm::wasm::v1::MsgExecuteContractResponse,
-    },
-    osmosis_test_tube::{
-        Account, Bank, Gamm, Module, OsmosisTestApp, Runner, RunnerError, RunnerResult,
-        SigningAccount, Wasm,
-    },
+use cw_it::osmosis_std::types::cosmos::bank::v1beta1::QueryBalanceRequest;
+use cw_it::osmosis_std::types::cosmwasm::wasm::v1::MsgExecuteContractResponse;
+use cw_it::osmosis_test_tube::{
+    Account, Bank, Gamm, Module, OsmosisTestApp, Runner, RunnerError, RunnerResult, SigningAccount,
+    Wasm,
 };
 use liquidity_helper::LiquidityHelper;
 use osmosis_liquidity_helper::msg::InstantiateMsg;
