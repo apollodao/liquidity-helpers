@@ -1,8 +1,8 @@
 [package]
 name          = "astroport-liquidity-helper"
 description   = "A contract to provide unbalanced liquidity to Astroport pools"
-version       = "0.1.0"
 authors       = ["Sturdy <sturdy@apollo.farm>"]
+version       = { workspace = true }
 edition       = { workspace = true }
 license       = { workspace = true }
 homepage      = { workspace = true }

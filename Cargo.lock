@@ -92,7 +92,7 @@ dependencies = [
 
 [[package]]
 name = "astroport-liquidity-helper"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "apollo-cw-asset",
  "apollo-utils",
@@ -1328,7 +1328,7 @@ checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
 
 [[package]]
 name = "liquidity-helper"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "apollo-cw-asset",
  "apollo-utils",
@@ -1485,7 +1485,7 @@ checksum = "4d5d9eb14b174ee9aa2ef96dc2b94637a2d4b6e7cb873c7e171f0c20c6cf3eac"
 
 [[package]]
 name = "osmosis-liquidity-helper"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "apollo-cw-asset",
  "cosmwasm-schema",

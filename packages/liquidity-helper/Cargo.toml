@@ -1,8 +1,8 @@
 [package]
 name          = "liquidity-helper"
 description   = "Helpers and common messaging for liquidity helper contracts"
-version       = "0.1.0"
 authors       = ["Sturdy <sturdy@apollo.farm>"]
+version       = { workspace = true }
 edition       = { workspace = true }
 license       = { workspace = true }
 homepage      = { workspace = true }
