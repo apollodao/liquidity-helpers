@@ -1,8 +1,8 @@
 use apollo_cw_asset::AssetList;
 use apollo_utils::assets::separate_natives_and_cw20s;
+use cosmwasm_schema::cw_serde;
+use cosmwasm_schema::serde::Serialize;
 use cw20::Cw20ExecuteMsg;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{
     to_binary, Addr, Api, Binary, Coin, CosmosMsg, Empty, StdResult, Uint128, WasmMsg,
@@ -13,7 +13,7 @@ use crate::msg::ExecuteMsg;
 /// LiquidityHelper is a wrapper around Addr that provides a lot of helpers
 /// for working with this contract. It can be imported by other contracts
 /// who wish to call this contract.
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cw_serde]
 pub struct LiquidityHelperBase<T>(pub T);
 
 pub type LiquidityHelperUnchecked = LiquidityHelperBase<String>;
