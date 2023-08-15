@@ -45,7 +45,7 @@ pub fn setup(runner: &TestRunner) -> (Vec<SigningAccount>, HashMap<String, u64>)
         .unwrap();
 
     // Upload astroport contracts
-    let contracts = get_local_contracts(runner, &Some("tests/artifacts"), false, &None);
+    let contracts = get_local_contracts(runner, &Some("tests/astroport-artifacts"), false, &None);
     let astroport_code_ids = upload_wasm_files(runner, &accs[0], contracts).unwrap();
 
     (accs, astroport_code_ids)
