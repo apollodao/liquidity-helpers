@@ -1,57 +1,63 @@
 use apollo_cw_asset::{Asset, AssetInfo, AssetList};
 use astroport_liquidity_helper::math::calc_xyk_balancing_swap;
 use astroport_liquidity_helper::msg::InstantiateMsg;
-use astroport_types::asset::{Asset as AstroAsset, AssetInfo as AstroAssetInfo};
-use astroport_types::factory::{FeeInfoResponse, PairType, QueryMsg as FactoryQueryMsg};
-use astroport_types::pair::{
+use cosmwasm_std::{coin, to_binary, Addr, Coin, Decimal, Uint128};
+use cw20::{AllowanceResponse, BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
+use cw_dex::astroport::astroport::asset::{Asset as AstroAsset, AssetInfo as AstroAssetInfo};
+use cw_dex::astroport::astroport::factory::{
+    FeeInfoResponse, PairType, QueryMsg as FactoryQueryMsg,
+};
+use cw_dex::astroport::astroport::pair::{
     ExecuteMsg as PairExecuteMsg, PoolResponse, QueryMsg as PairQueryMsg, SimulationResponse,
 };
-use cosmwasm_std::{to_binary, Addr, Coin, Decimal, Uint128};
-use cw20::{AllowanceResponse, BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
-use cw_dex::astroport::AstroportPool;
-use cw_it::astroport::{
-    create_astroport_pair, instantiate_astroport, upload_astroport_contracts, AstroportContracts,
+use cw_dex::astroport::{astroport, AstroportPool};
+use cw_it::astroport::utils::{
+    create_astroport_pair, get_local_contracts, instantiate_astroport, AstroportContracts,
 };
-use cw_it::config::TestConfig;
+use cw_it::helpers::upload_wasm_files;
+use cw_it::osmosis_test_tube::osmosis_std::types::cosmos::bank::v1beta1::QueryBalanceRequest;
+use cw_it::traits::CwItRunner;
+use cw_it::TestRunner;
 use liquidity_helper::LiquidityHelper;
-use osmosis_test_tube::cosmrs::proto::cosmos::bank::v1beta1::QueryBalanceRequest;
 use test_case::test_case;
 
-use osmosis_test_tube::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
-use osmosis_test_tube::{Account, Bank, Module, OsmosisTestApp, Runner, SigningAccount, Wasm};
+use cw_it::osmosis_test_tube::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
+use cw_it::osmosis_test_tube::{
+    Account, Bank, Module, OsmosisTestApp, Runner, SigningAccount, Wasm,
+};
 use std::collections::HashMap;
 use std::str::FromStr;
 
-const TEST_CONFIG_PATH: &str = "tests/configs/terra.yaml";
 pub const ASTROPORT_LIQUIDITY_HELPER_WASM_FILE: &str =
     "../../target/wasm32-unknown-unknown/release/astroport_liquidity_helper.wasm";
 
 /// Runs tests against the Osmosis bindings.
 /// This works since there are no big differences between Terra and Osmosis.
-pub fn setup_with_osmosis_bindings() -> (OsmosisTestApp, Vec<SigningAccount>, HashMap<String, u64>)
-{
-    let app = OsmosisTestApp::default();
-
-    let accs = app
-        .init_accounts(&[Coin::new(1_000_000_000_000_000, "uluna")], 2)
+pub fn setup(runner: &TestRunner) -> (Vec<SigningAccount>, HashMap<String, u64>) {
+    let accs = runner
+        .init_accounts(
+            &[
+                coin(1_000_000_000_000_000, "uluna"),
+                coin(1_000_000_000_000_000, "uosmo"),
+            ],
+            2,
+        )
         .unwrap();
 
-    let test_config = TestConfig::from_yaml(TEST_CONFIG_PATH);
-
     // Upload astroport contracts
-    let astroport_code_ids = upload_astroport_contracts(&app, &test_config, &accs[0]);
+    let contracts = get_local_contracts(runner, &Some("tests/astroport-artifacts"), false, &None);
+    let astroport_code_ids = upload_wasm_files(runner, &accs[0], contracts).unwrap();
 
-    (app, accs, astroport_code_ids)
+    (accs, astroport_code_ids)
 }
 
 /// Instantiates the liquidity helper contract
-pub fn setup_astroport_liquidity_provider_tests<R>(
-    app: &R,
+pub fn setup_astroport_liquidity_provider_tests<'a, R: Runner<'a>>(
+    app: &'a R,
     accs: &[SigningAccount],
     astroport_contracts: &AstroportContracts,
 ) -> LiquidityHelper
 where
-    R: for<'a> Runner<'a>,
 {
     let wasm = Wasm::new(app);
     let admin = &accs[0];
@@ -90,7 +96,8 @@ where
 
 #[test]
 pub fn test_calc_xyk_balancing_swap() {
-    let (app, accs, astroport_code_ids) = setup_with_osmosis_bindings();
+    let app = TestRunner::OsmosisTestApp(OsmosisTestApp::default());
+    let (accs, astroport_code_ids) = setup(&app);
     let wasm = Wasm::new(&app);
     let admin = &accs[0];
 
@@ -115,6 +122,7 @@ pub fn test_calc_xyk_balancing_swap() {
         asset_infos.clone(),
         None,
         admin,
+        None,
     );
 
     // Increase allowance of astro token for Pair contract
@@ -142,7 +150,8 @@ pub fn test_calc_xyk_balancing_swap() {
                     contract_addr: Addr::unchecked(&astro_token),
                 },
             },
-        ],
+        ]
+        .to_vec(),
         slippage_tolerance: Some(Decimal::from_str("0.02").unwrap()),
         auto_stake: Some(false),
         receiver: None,
@@ -196,6 +205,7 @@ pub fn test_calc_xyk_balancing_swap() {
                     amount: offer_asset.amount,
                     info: asset_infos[0].clone(),
                 },
+                ask_asset_info: Some(return_asset.info.into()),
             },
         )
         .unwrap();
@@ -259,15 +269,16 @@ pub fn test_balancing_provide_liquidity(
     reserves: [Uint128; 2],
     should_provide: bool,
 ) {
-    let (app, accs, astroport_code_ids) = &setup_with_osmosis_bindings();
+    let app = TestRunner::OsmosisTestApp(OsmosisTestApp::default());
+    let (accs, astroport_code_ids) = &setup(&app);
     let admin = &accs[0];
-    let wasm = Wasm::new(app);
+    let wasm = Wasm::new(&app);
 
     // Instantiate Astroport contracts
-    let astroport_contracts = instantiate_astroport(app, admin, astroport_code_ids);
+    let astroport_contracts = instantiate_astroport(&app, admin, astroport_code_ids);
 
     let liquidity_helper =
-        setup_astroport_liquidity_provider_tests(app, accs, &astroport_contracts);
+        setup_astroport_liquidity_provider_tests(&app, accs, &astroport_contracts);
     let astro_token = astroport_contracts.astro_token.address.clone();
 
     // Create 1:1 XYK pool
@@ -280,17 +291,18 @@ pub fn test_balancing_provide_liquidity(
         },
     ];
     let (uluna_astro_pair_addr, uluna_astro_lp_token) = create_astroport_pair(
-        app,
+        &app,
         &astroport_contracts.factory.address,
         PairType::Xyk {},
         asset_infos,
         None,
         admin,
+        None,
     );
     let pool = AstroportPool {
         lp_token_addr: Addr::unchecked(uluna_astro_lp_token),
         pair_addr: Addr::unchecked(uluna_astro_pair_addr.clone()),
-        pair_type: astroport_types::factory::PairType::Xyk {},
+        pair_type: astroport::factory::PairType::Xyk {},
         pool_assets: vec![
             AssetInfo::native("uluna".to_string()),
             AssetInfo::cw20(Addr::unchecked(&astro_token)),
@@ -334,7 +346,8 @@ pub fn test_balancing_provide_liquidity(
                     contract_addr: Addr::unchecked(&astro_token),
                 },
             },
-        ],
+        ]
+        .to_vec(),
         slippage_tolerance: Some(Decimal::from_str("0.02").unwrap()),
         auto_stake: Some(false),
         receiver: None,
@@ -363,8 +376,8 @@ pub fn test_balancing_provide_liquidity(
     }
 
     // Check asset balances before balancing provide liquidity
-    let uluna_balance_before = query_token_balance(app, &admin.address(), "uluna");
-    let astro_balance_before = query_cw20_balance(app, admin.address(), &astro_token);
+    let uluna_balance_before = query_token_balance(&app, &admin.address(), "uluna");
+    let astro_balance_before = query_cw20_balance(&app, admin.address(), &astro_token);
 
     // Balancing Provide liquidity
     println!("Balancing provide liquidity");
@@ -388,8 +401,8 @@ pub fn test_balancing_provide_liquidity(
         .unwrap()
         .assets;
     // Check asset balances after balancing provide liquidity.
-    let uluna_balance_after = query_token_balance(app, &admin.address(), "uluna");
-    let astro_balance_after = query_cw20_balance(app, admin.address(), &astro_token);
+    let uluna_balance_after = query_token_balance(&app, &admin.address(), "uluna");
+    let astro_balance_after = query_cw20_balance(&app, admin.address(), &astro_token);
     if should_provide {
         assert_eq!(pool_liquidity[0].amount, reserves[0] + asset_amounts[0]);
         assert_eq!(pool_liquidity[1].amount, reserves[1] + asset_amounts[1]);

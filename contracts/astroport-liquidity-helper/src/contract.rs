@@ -1,7 +1,6 @@
 use apollo_cw_asset::{Asset, AssetList};
 use apollo_utils::assets::receive_assets;
 use apollo_utils::responses::merge_responses;
-use astroport_types::factory::PairType;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -9,6 +8,7 @@ use cosmwasm_std::{
     MessageInfo, Response, StdResult, Uint128,
 };
 use cw2::set_contract_version;
+use cw_dex::astroport::astroport::factory::PairType;
 use cw_dex::astroport::helpers::query_fee_info;
 
 use cw_dex::astroport::AstroportPool;
@@ -112,8 +112,10 @@ pub fn execute_balancing_provide_liquidity(
             // into the other and then provide liquidity
             let pool_res = pool.query_pool_info(&deps.querier)?;
 
-            let pool_reserves: [Asset; 2] =
-                [(&pool_res.assets[0]).into(), (&pool_res.assets[1]).into()];
+            let pool_reserves: [Asset; 2] = [
+                Asset::from(pool_res.assets[0].clone()),
+                Asset::from(pool_res.assets[1].clone()),
+            ];
             if assets.len() > 2 {
                 return Err(ContractError::MoreThanTwoAssets {});
             }

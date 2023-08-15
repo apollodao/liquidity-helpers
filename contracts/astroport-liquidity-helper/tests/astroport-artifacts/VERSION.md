@@ -1,0 +1,1 @@
+These artifacts were downloaded from the Github repository `astroport-core` on the [releases page](https://github.com/astroport-fi/astroport-core/releases/tag/v2.8.0). The version of the artifacts is `v2.8.0`.

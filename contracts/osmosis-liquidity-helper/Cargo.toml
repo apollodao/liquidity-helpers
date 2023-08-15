@@ -1,8 +1,8 @@
 [package]
 name          = "osmosis-liquidity-helper"
 description   = "A contract to provide unbalanced liquidity to Osmosis pools"
-version       = "0.1.0"
 authors       = ["Sturdy <sturdy@apollo.farm>"]
+version       = { workspace = true }
 edition       = { workspace = true }
 license       = { workspace = true }
 homepage      = { workspace = true }
@@ -39,15 +39,14 @@ optimize-m1 = """docker run --rm -v "$(pwd)":/code \
 """
 
 [dependencies]
-cosmwasm-schema  = { workspace = true }
-cosmwasm-std     = { workspace = true }
-cw2              = { workspace = true }
-thiserror        = { workspace = true }
-apollo-cw-asset         = { workspace = true }
-cw-dex           = { workspace = true, features = ["osmosis"] }
-liquidity-helper = { workspace = true }
+cosmwasm-schema   = { workspace = true }
+cosmwasm-std      = { workspace = true }
+cw2               = { workspace = true }
+thiserror         = { workspace = true }
+apollo-cw-asset   = { workspace = true }
+cw-dex            = { workspace = true, features = ["osmosis"] }
+liquidity-helper  = { workspace = true }
 
 [dev-dependencies]
-osmosis-test-tube = { workspace = true }
-cw-it           = { workspace = true }
-test-case       = { workspace = true }
+cw-it             = { workspace = true, features = ["osmosis-test-tube"] }
+test-case         = { workspace = true }
