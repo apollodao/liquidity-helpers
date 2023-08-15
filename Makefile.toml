@@ -7,6 +7,7 @@ RUST_OPTIMIZER_VERSION = "0.13.0"
 RUST_VERSION = "1.69.0"
 
 [tasks.rust-optimizer]
+cwd = "${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}"
 script = """
 if [[ $(arch) == "arm64" ]]; then
   image="cosmwasm/workspace-optimizer-arm64:${RUST_OPTIMIZER_VERSION}"
@@ -18,7 +19,6 @@ docker run --rm -v "$(pwd)":/code \
   --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
   ${image}
 """
-
 
 [tasks.format]
 toolchain = "nightly"
