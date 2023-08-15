@@ -6,6 +6,10 @@ on:
       - master
       - main
   pull_request:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
 
 env:
   RUST_BACKTRACE: 1
@@ -25,7 +29,7 @@ jobs:
         run: cargo make rust-optimizer
 
       - name: Upload artifacts
-        - uses: actions/upload-artifact@v3
-          with:
-            name: artifacts
-            path: artifacts/
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: artifacts/
