@@ -21,7 +21,8 @@ thiserror         = "1.0.45"
 apollo-cw-asset   = "0.1.2"
 cw-dex            = "0.4.0-rc.1"
 apollo-utils      = "0.1.1"
-liquidity-helper  = { path = "./packages/liquidity-helper" }
+cw-bigint         = "0.4.3"
+liquidity-helper  = { version = "0.2.0", path = "./packages/liquidity-helper" }
 
 # Dev dependencies
 cw-it             = "0.1.2"

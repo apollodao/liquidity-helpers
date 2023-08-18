@@ -539,7 +539,8 @@ dependencies = [
 [[package]]
 name = "cw-bigint"
 version = "0.4.3"
-source = "git+https://github.com/apollodao/cw-bigint?rev=c2217a76b08cb65204db407f661298c48b01e763#c2217a76b08cb65204db407f661298c48b01e763"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4728ee779cede6a73bf3daf35504960eb3c256cedd40e5e2827207a49dd76027"
 dependencies = [
  "autocfg",
  "num-integer",
