@@ -9,7 +9,7 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use cw_dex::astroport::astroport::factory::PairType;
-use cw_dex::astroport::helpers::query_fee_info;
+use cw_dex::astroport::astroport::querier::query_fee_info;
 
 use cw_dex::astroport::AstroportPool;
 use cw_dex::traits::Pool;
@@ -168,7 +168,7 @@ pub fn execute_balancing_provide_liquidity(
             }) {
                 if min_out.is_zero() {
                     // If min_out is zero, we can just return the received native
-                    // assets.  We don't need to return any Cw20 assets, because
+                    // assets. We don't need to return any Cw20 assets, because
                     // we did not execute the transferFrom on them.
                     let return_msg = CosmosMsg::Bank(BankMsg::Send {
                         to_address: info.sender.to_string(),

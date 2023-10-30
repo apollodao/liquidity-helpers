@@ -1,7 +1,7 @@
 use apollo_cw_asset::{Asset, AssetInfo, AssetList};
 use astroport_liquidity_helper::math::calc_xyk_balancing_swap;
 use astroport_liquidity_helper::msg::InstantiateMsg;
-use cosmwasm_std::{coin, to_binary, Addr, Coin, Decimal, Uint128};
+use cosmwasm_std::{assert_approx_eq, coin, to_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{AllowanceResponse, BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_dex::astroport::astroport::asset::{Asset as AstroAsset, AssetInfo as AstroAssetInfo};
 use cw_dex::astroport::astroport::factory::{
@@ -96,13 +96,14 @@ where
 
 #[test]
 pub fn test_calc_xyk_balancing_swap() {
-    let app = TestRunner::OsmosisTestApp(OsmosisTestApp::default());
-    let (accs, astroport_code_ids) = setup(&app);
-    let wasm = Wasm::new(&app);
+    let app = OsmosisTestApp::default();
+    let runner = TestRunner::OsmosisTestApp(&app);
+    let (accs, astroport_code_ids) = setup(&runner);
+    let wasm = Wasm::new(&runner);
     let admin = &accs[0];
 
     // Instantiate Astroport contracts
-    let astroport_contracts = instantiate_astroport(&app, admin, &astroport_code_ids);
+    let astroport_contracts = instantiate_astroport(&runner, admin, &astroport_code_ids);
 
     let astro_token = astroport_contracts.astro_token.address.clone();
 
@@ -116,7 +117,7 @@ pub fn test_calc_xyk_balancing_swap() {
         },
     ];
     let (uluna_astro_pair_addr, _) = create_astroport_pair(
-        &app,
+        &runner,
         &astroport_contracts.factory.address,
         PairType::Xyk {},
         asset_infos.clone(),
@@ -269,16 +270,17 @@ pub fn test_balancing_provide_liquidity(
     reserves: [Uint128; 2],
     should_provide: bool,
 ) {
-    let app = TestRunner::OsmosisTestApp(OsmosisTestApp::default());
-    let (accs, astroport_code_ids) = &setup(&app);
+    let app = OsmosisTestApp::default();
+    let runner = TestRunner::OsmosisTestApp(&app);
+    let (accs, astroport_code_ids) = &setup(&runner);
     let admin = &accs[0];
-    let wasm = Wasm::new(&app);
+    let wasm = Wasm::new(&runner);
 
     // Instantiate Astroport contracts
-    let astroport_contracts = instantiate_astroport(&app, admin, astroport_code_ids);
+    let astroport_contracts = instantiate_astroport(&runner, admin, astroport_code_ids);
 
     let liquidity_helper =
-        setup_astroport_liquidity_provider_tests(&app, accs, &astroport_contracts);
+        setup_astroport_liquidity_provider_tests(&runner, accs, &astroport_contracts);
     let astro_token = astroport_contracts.astro_token.address.clone();
 
     // Create 1:1 XYK pool
@@ -291,7 +293,7 @@ pub fn test_balancing_provide_liquidity(
         },
     ];
     let (uluna_astro_pair_addr, uluna_astro_lp_token) = create_astroport_pair(
-        &app,
+        &runner,
         &astroport_contracts.factory.address,
         PairType::Xyk {},
         asset_infos,
@@ -307,6 +309,7 @@ pub fn test_balancing_provide_liquidity(
             AssetInfo::native("uluna".to_string()),
             AssetInfo::cw20(Addr::unchecked(&astro_token)),
         ],
+        liquidity_manager: Addr::unchecked(astroport_contracts.liquidity_manager.address),
     };
 
     // Increase allowance of astro token for Pair contract
@@ -376,8 +379,8 @@ pub fn test_balancing_provide_liquidity(
     }
 
     // Check asset balances before balancing provide liquidity
-    let uluna_balance_before = query_token_balance(&app, &admin.address(), "uluna");
-    let astro_balance_before = query_cw20_balance(&app, admin.address(), &astro_token);
+    let uluna_balance_before = query_token_balance(&runner, &admin.address(), "uluna");
+    let astro_balance_before = query_cw20_balance(&runner, admin.address(), &astro_token);
 
     // Balancing Provide liquidity
     println!("Balancing provide liquidity");
@@ -391,7 +394,7 @@ pub fn test_balancing_provide_liquidity(
     let msgs = liquidity_helper
         .balancing_provide_liquidity(assets, Uint128::zero(), to_binary(&pool).unwrap(), None)
         .unwrap();
-    let _res = app
+    let _res = runner
         .execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, admin)
         .unwrap();
 
@@ -401,11 +404,20 @@ pub fn test_balancing_provide_liquidity(
         .unwrap()
         .assets;
     // Check asset balances after balancing provide liquidity.
-    let uluna_balance_after = query_token_balance(&app, &admin.address(), "uluna");
-    let astro_balance_after = query_cw20_balance(&app, admin.address(), &astro_token);
+    let uluna_balance_after = query_token_balance(&runner, &admin.address(), "uluna");
+    let astro_balance_after = query_cw20_balance(&runner, admin.address(), &astro_token);
     if should_provide {
-        assert_eq!(pool_liquidity[0].amount, reserves[0] + asset_amounts[0]);
-        assert_eq!(pool_liquidity[1].amount, reserves[1] + asset_amounts[1]);
+        // Astroport liquidity manager rounds down the amount of tokens sent to the pool by one unit.
+        assert_approx_eq!(
+            pool_liquidity[0].amount,
+            reserves[0] + asset_amounts[0],
+            "0.00000001"
+        );
+        assert_approx_eq!(
+            pool_liquidity[1].amount,
+            reserves[1] + asset_amounts[1],
+            "0.00000001"
+        );
 
         // Should have used all assets
         assert_eq!(uluna_balance_before - uluna_balance_after, asset_amounts[0]);
