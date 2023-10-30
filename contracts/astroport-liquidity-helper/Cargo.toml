@@ -49,4 +49,5 @@ cw-bigint         = { workspace = true }
 [dev-dependencies]
 cw-it             = { workspace = true, features = ["astroport", "osmosis-test-tube"] }
 env_logger        = "0.9.0"
-test-case         = "2.2.2"
+test-case         = "3.2.1"
+cw-dex-test-helpers = { path = "../../../cw-dex/test-helpers" }

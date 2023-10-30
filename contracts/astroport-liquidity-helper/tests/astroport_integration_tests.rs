@@ -9,6 +9,7 @@ use cw_dex::astroport::astroport::factory::{
 };
 use cw_dex::astroport::astroport::pair::{
     ExecuteMsg as PairExecuteMsg, PoolResponse, QueryMsg as PairQueryMsg, SimulationResponse,
+    StablePoolParams,
 };
 use cw_dex::astroport::{astroport, AstroportPool};
 use cw_it::astroport::utils::{
@@ -19,7 +20,7 @@ use cw_it::osmosis_test_tube::osmosis_std::types::cosmos::bank::v1beta1::QueryBa
 use cw_it::traits::CwItRunner;
 use cw_it::TestRunner;
 use liquidity_helper::LiquidityHelper;
-use test_case::test_case;
+use test_case::test_matrix;
 
 use cw_it::osmosis_test_tube::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
 use cw_it::osmosis_test_tube::{
@@ -215,59 +216,83 @@ pub fn test_calc_xyk_balancing_swap() {
     assert_eq!(simulation_result.return_amount, return_asset.amount);
 }
 
-/// Tests the BalancingProvideLiquidity message
-#[test_case(
-    [Uint128::from(1_000_000u128), Uint128::from(2_000_000u128)],
-    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
-    true;
-    "Test 1: 1:1 ratio, double amount of asset 2"
-)]
-#[test_case(
-    [Uint128::from(1_000_000u128), Uint128::from(2_000_000u128)],
-    [Uint128::from(1_000_000_000_000u128), Uint128::from(5_000_000_000_000u128)],
-    true;
-    "Test 2: 1:5 ratio, double amount of asset 2"
-)]
-#[test_case(
-    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
-    [Uint128::from(1_000_000_000_000u128), Uint128::from(3_000_000_000_000u128)],
-    true;
-    "Test 3: 1:3 pool ratio, 1:1 ratio of assets, but a lot of assets compared to pool (high slipage)"
-)]
-#[test_case(
-    [Uint128::from(0u128), Uint128::from(1_000_000_000_000u128)],
-    [Uint128::from(1_000_000_000_000u128), Uint128::from(2_000_000_000_000u128)],
-    true;
-    "Test 4: 1:2 pool ratio, 0:1 ratio of assets"
-)]
-#[test_case(
-    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
-    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
-    true;
-    "Test 5: 1:1 pool ratio, 1:1 ratio of assets"
-)]
-#[test_case(
-    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
-    [Uint128::from(0u128), Uint128::from(0u128)],
+// Test 1: 1:1 ratio, double amount of asset 2
+#[test_matrix(
+    [[Uint128::from(1_000_000u128), Uint128::from(2_000_000u128)]],
+    [[Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)]],
+    [PairType::Xyk {},PairType::Stable {}, PairType::Custom("concentrated".to_string())],
     true
-    => panics "No liquidity in pool";
-    "Test 6: 0:0 pool ratio, should fail with correct error"
 )]
-#[test_case(
-    [Uint128::from(1_000_000_000_000u128), Uint128::from(0u128)],
-    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
-    true;
-    "Test 7: 1:1 pool ratio, 1:0 ratio of assets"
+// Test 2: 1:5 ratio, double amount of asset 2
+#[test_matrix(
+    [[Uint128::from(1_000_000u128), Uint128::from(2_000_000u128)]],
+    [[Uint128::from(1_000_000_000_000u128), Uint128::from(5_000_000_000_000u128)]],
+    [PairType::Xyk {},PairType::Stable {}, PairType::Custom("concentrated".to_string())],
+    true
+)]
+// Test 3: 1:2.9 pool ratio, 1:1 ratio of assets, but a lot of assets compared to pool (high
+// slipage)
+#[test_matrix(
+    [[Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)]],
+    [[Uint128::from(1_000_000_000_000u128), Uint128::from(2_900_000_000_000u128)]],
+    [PairType::Xyk {},PairType::Stable {}, PairType::Custom("concentrated".to_string())],
+    true
+)]
+// Test 4: 1:2 pool ratio, 0:1 ratio of assets
+#[test_matrix(
+    [[Uint128::from(0u128), Uint128::from(1_000_000_000_000u128)]],
+    [[Uint128::from(1_000_000_000_000u128), Uint128::from(2_000_000_000_000u128)]],
+    [PairType::Xyk {},PairType::Stable {}, PairType::Custom("concentrated".to_string())],
+    true
+)]
+// Test 5: 1:1 pool ratio, 1:1 ratio of assets
+#[test_matrix(
+    [[Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)]],
+    [[Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)]],
+    [PairType::Xyk {},PairType::Stable {}, PairType::Custom("concentrated".to_string())],
+    true
+)]
+// Test 6: 1:1 pool ratio, 1:0 ratio of assets
+#[test_matrix(
+    [[Uint128::from(1_000_000_000u128), Uint128::from(0u128)]],
+    [[Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)]],
+    [PairType::Xyk {},PairType::Stable {}, PairType::Custom("concentrated".to_string())],
+    true
 )]
 #[test_case(
     [Uint128::from(0u128), Uint128::from(3564u128)],
     [Uint128::from(3450765745u128), Uint128::from(12282531965699u128)],
+    PairType::Xyk {},
     false;
-    "Test 8: Amount of asset less than one microunit of other asset"
+    "Test 7: Xyk amount of asset less than one microunit of other asset"
 )]
+// Test 7: Amount of asset would be less than one microunit of other asset if it were xyk
+#[test_matrix(
+    [[Uint128::from(0u128), Uint128::from(3564u128)]],
+    [[Uint128::from(3450765745u128), Uint128::from(12282531965699u128)]],
+    [PairType::Stable {  }, PairType::Custom("concentrated".to_string())],
+    true
+)]
+#[test_case(
+    [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+    [Uint128::from(0u128), Uint128::from(0u128)],
+    PairType::Xyk {},
+    true
+    => panics "No liquidity in pool";
+    "Test 8 Xyk: 0:0 pool ratio, should fail with correct error"
+)]
+// Test 8: empty pool. Should work for stable and concentrated pools, but not for xyk pools.
+#[test_matrix(
+    [[Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)]],
+    [[Uint128::from(0u128), Uint128::from(0u128)]],
+    [PairType::Stable {  }, PairType::Custom("concentrated".to_string())],
+    true
+)]
+/// Tests the BalancingProvideLiquidity message
 pub fn test_balancing_provide_liquidity(
     asset_amounts: [Uint128; 2],
     reserves: [Uint128; 2],
+    pair_type: PairType,
     should_provide: bool,
 ) {
     let app = OsmosisTestApp::default();
@@ -279,11 +304,22 @@ pub fn test_balancing_provide_liquidity(
     // Instantiate Astroport contracts
     let astroport_contracts = instantiate_astroport(&runner, admin, astroport_code_ids);
 
+    // Update native coin registry with uluna precision
+    wasm.execute(
+        &astroport_contracts.coin_registry.address,
+        &astroport::native_coin_registry::ExecuteMsg::Add {
+            native_coins: vec![("uluna".to_string(), 6)],
+        },
+        &[],
+        admin,
+    )
+    .unwrap();
+
     let liquidity_helper =
         setup_astroport_liquidity_provider_tests(&runner, accs, &astroport_contracts);
     let astro_token = astroport_contracts.astro_token.address.clone();
 
-    // Create 1:1 XYK pool
+    // Create pool
     let asset_infos: [AstroAssetInfo; 2] = [
         AstroAssetInfo::NativeToken {
             denom: "uluna".into(),
@@ -292,19 +328,33 @@ pub fn test_balancing_provide_liquidity(
             contract_addr: Addr::unchecked(&astro_token),
         },
     ];
+    let init_params = match &pair_type {
+        PairType::Stable {} => Some(
+            to_binary(&StablePoolParams {
+                amp: 10u64,
+                owner: None,
+            })
+            .unwrap(),
+        ),
+        PairType::Custom(t) => match t.as_str() {
+            "concentrated" => Some(to_binary(&cw_dex_test_helpers::common_pcl_params()).unwrap()),
+            _ => None,
+        },
+        _ => None,
+    };
     let (uluna_astro_pair_addr, uluna_astro_lp_token) = create_astroport_pair(
         &runner,
         &astroport_contracts.factory.address,
-        PairType::Xyk {},
+        pair_type.clone(),
         asset_infos,
-        None,
+        init_params,
         admin,
         None,
     );
     let pool = AstroportPool {
         lp_token_addr: Addr::unchecked(uluna_astro_lp_token),
         pair_addr: Addr::unchecked(uluna_astro_pair_addr.clone()),
-        pair_type: astroport::factory::PairType::Xyk {},
+        pair_type,
         pool_assets: vec![
             AssetInfo::native("uluna".to_string()),
             AssetInfo::cw20(Addr::unchecked(&astro_token)),
@@ -407,7 +457,8 @@ pub fn test_balancing_provide_liquidity(
     let uluna_balance_after = query_token_balance(&runner, &admin.address(), "uluna");
     let astro_balance_after = query_cw20_balance(&runner, admin.address(), &astro_token);
     if should_provide {
-        // Astroport liquidity manager rounds down the amount of tokens sent to the pool by one unit.
+        // Astroport liquidity manager rounds down the amount of tokens sent to the pool
+        // by one unit.
         assert_approx_eq!(
             pool_liquidity[0].amount,
             reserves[0] + asset_amounts[0],
@@ -463,4 +514,17 @@ where
     )
     .unwrap()
     .balance
+}
+
+#[test_matrix(
+    3,
+    4,
+    [PairType::Xyk {}, PairType::Stable {}]
+)]
+fn multiplication_tests(x: i8, y: i8, pair_type: PairType) {
+    // let actual = (x * y).abs();
+    println!("x: {}, y: {}", x, y);
+    println!("pair_type: {:?}", pair_type);
+
+    // assert_eq!(8, actual)
 }
