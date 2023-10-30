@@ -11,6 +11,7 @@ use cw_dex::astroport::astroport::pair::{
     ExecuteMsg as PairExecuteMsg, PoolResponse, QueryMsg as PairQueryMsg, SimulationResponse,
     StablePoolParams,
 };
+use cw_dex::astroport::astroport::pair_concentrated::ConcentratedPoolParams;
 use cw_dex::astroport::{astroport, AstroportPool};
 use cw_it::astroport::utils::{
     create_astroport_pair, get_local_contracts, instantiate_astroport, AstroportContracts,
@@ -337,7 +338,7 @@ pub fn test_balancing_provide_liquidity(
             .unwrap(),
         ),
         PairType::Custom(t) => match t.as_str() {
-            "concentrated" => Some(to_binary(&cw_dex_test_helpers::common_pcl_params()).unwrap()),
+            "concentrated" => Some(to_binary(&common_pcl_params()).unwrap()),
             _ => None,
         },
         _ => None,
@@ -516,15 +517,25 @@ where
     .balance
 }
 
-#[test_matrix(
-    3,
-    4,
-    [PairType::Xyk {}, PairType::Stable {}]
-)]
-fn multiplication_tests(x: i8, y: i8, pair_type: PairType) {
-    // let actual = (x * y).abs();
-    println!("x: {}, y: {}", x, y);
-    println!("pair_type: {:?}", pair_type);
+pub fn f64_to_dec<T>(val: f64) -> T
+where
+    T: FromStr,
+    T::Err: std::error::Error,
+{
+    T::from_str(&val.to_string()).unwrap()
+}
 
-    // assert_eq!(8, actual)
+pub fn common_pcl_params() -> ConcentratedPoolParams {
+    ConcentratedPoolParams {
+        amp: f64_to_dec(40f64),
+        gamma: f64_to_dec(0.000145),
+        mid_fee: f64_to_dec(0.0026),
+        out_fee: f64_to_dec(0.0045),
+        fee_gamma: f64_to_dec(0.00023),
+        repeg_profit_threshold: f64_to_dec(0.000002),
+        min_price_scale_delta: f64_to_dec(0.000146),
+        price_scale: Decimal::one(),
+        ma_half_time: 600,
+        track_asset_balances: None,
+    }
 }
