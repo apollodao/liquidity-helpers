@@ -63,11 +63,6 @@ pub fn execute(
             }
 
             match msg {
-                CallbackMsg::ProvideLiquidity {
-                    assets,
-                    min_out,
-                    pool,
-                } => execute_callback_provide_liquidity(deps, env, info, assets, min_out, pool),
                 CallbackMsg::ReturnLpTokens {
                     pool,
                     balance_before,
@@ -106,10 +101,11 @@ pub fn execute_balancing_provide_liquidity(
         .lp_token()
         .query_balance(&deps.querier, env.contract.address.to_string())?;
 
-    match pool.pair_type {
+    // For XYK pools we need to swap some amount of one asset into the other before
+    // we provide liquidity. For other types we can just provide liquidity
+    // directly.
+    let swap_res = match &pool.pair_type {
         PairType::Xyk {} => {
-            // For XYK pools we need to swap some amount of one asset
-            // into the other and then provide liquidity
             let pool_res = pool.query_pool_info(&deps.querier)?;
 
             let pool_reserves: [Asset; 2] = [
@@ -190,93 +186,51 @@ pub fn execute_balancing_provide_liquidity(
                 }
             }
 
-            let mut response = Response::new();
+            let mut swap_res = Response::new();
             // Create message to swap some of the asset to the other
             if offer_asset.amount > Uint128::zero() && return_asset.amount > Uint128::zero() {
-                let swap_res = pool.swap(
+                swap_res = pool.swap(
                     deps.as_ref(),
                     &env,
                     offer_asset,
                     return_asset.info.clone(),
                     Uint128::one(),
                 )?;
-                response = swap_res;
             }
 
-            // Create message to provide liquidity
-            let provide_msg = CallbackMsg::ProvideLiquidity {
-                assets: assets.clone(),
-                min_out,
-                pool: pool.clone(),
-            }
-            .into_cosmos_msg(&env)?;
-            response = response.add_message(provide_msg);
-
-            // Callback to return LP tokens
-            let callback_msg = CallbackMsg::ReturnLpTokens {
-                pool,
-                balance_before: lp_token_balance,
-                recipient,
-            }
-            .into_cosmos_msg(&env)?;
-
-            let event =
-                Event::new("apollo/astroport-liquidity-helper/execute_balancing_provide_liquidity")
-                    .add_attribute("action", "xyk_provide_liquidity")
-                    .add_attribute("assets", assets.to_string())
-                    .add_attribute("min_out", min_out);
-
-            Ok(merge_responses(vec![receive_res, response])
-                .add_message(callback_msg)
-                .add_event(event))
+            swap_res
         }
-        PairType::Stable {} => {
-            // For stable pools we are allowed to provide liquidity in any ratio,
-            // so we simply provide liquidity with all passed assets.
-            let provide_liquidity_res =
-                pool.provide_liquidity(deps.as_ref(), &env, assets.clone(), min_out)?;
+        PairType::Custom(t) => match t.as_str() {
+            "concentrated" => Response::new(),
+            _ => return Err(ContractError::UnsupportedPairType {}),
+        },
+        _ => Response::new(),
+    };
 
-            // Callback to return LP tokens
-            let callback_msg = CallbackMsg::ReturnLpTokens {
-                pool,
-                balance_before: lp_token_balance,
-                recipient,
-            }
-            .into_cosmos_msg(&env)?;
+    // For stableswap and concentrated liquidity pools we are allowed to provide
+    // liquidity in any ratio, so we simply provide liquidity with all passed
+    // assets.
+    let provide_liquidity_res =
+        pool.provide_liquidity(deps.as_ref(), &env, assets.clone(), min_out)?;
 
-            let event =
-                Event::new("apollo/astroport-liquidity-helper/execute_balancing_provide_liquidity")
-                    .add_attribute("action", "stable_provide_liquidity")
-                    .add_attribute("assets", assets.to_string())
-                    .add_attribute("min_out", min_out);
-
-            Ok(merge_responses(vec![receive_res, provide_liquidity_res])
-                .add_message(callback_msg)
-                .add_event(event))
-        }
-        PairType::Custom(_) => Err(ContractError::CustomPairType {}),
+    // Callback to return LP tokens
+    let callback_msg = CallbackMsg::ReturnLpTokens {
+        pool,
+        balance_before: lp_token_balance,
+        recipient,
     }
-}
+    .into_cosmos_msg(&env)?;
 
-/// CallbackMsg handler to provide liquidity with the given assets. This needs
-/// to be a callback, rather than doing in the first ExecuteMsg, because
-/// pool.provide_liquidity does a simulation with current reserves, and we do a
-/// swap in the top level ExecuteMsg, which means the reserves would be wrong in
-/// the provide liquidity simulation.
-pub fn execute_callback_provide_liquidity(
-    deps: DepsMut,
-    env: Env,
-    _info: MessageInfo,
-    assets: AssetList,
-    min_out: Uint128,
-    pool: AstroportPool,
-) -> Result<Response, ContractError> {
-    let res = pool.provide_liquidity(deps.as_ref(), &env, assets.clone(), min_out)?;
+    let event: Event =
+        Event::new("apollo/astroport-liquidity-helper/execute_balancing_provide_liquidity")
+            .add_attribute("assets", assets.to_string())
+            .add_attribute("min_out", min_out);
 
-    let event = Event::new("apollo/astroport-liquidity-helper/execute_callback_provide_liquidity")
-        .add_attribute("assets", assets.to_string());
-
-    Ok(res.add_event(event))
+    Ok(
+        merge_responses(vec![receive_res, swap_res, provide_liquidity_res])
+            .add_message(callback_msg)
+            .add_event(event),
+    )
 }
 
 pub fn execute_callback_return_lp_tokens(

@@ -23,8 +23,8 @@ pub enum ContractError {
     #[error("Can't provide liquidity with more than 2 assets")]
     MoreThanTwoAssets {},
 
-    #[error("Custom pair type not supported")]
-    CustomPairType {},
+    #[error("Pair type not supported")]
+    UnsupportedPairType {},
 
     /// The minimum amount of tokens requested was not returned from the action
     #[error(
