@@ -49,7 +49,7 @@ version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "423502406a307052f6877030f48b5fb4e9fb338fc5e7c8ca1064210def52876b"
 dependencies = [
- "astroport 2.8.7",
+ "astroport",
  "cosmwasm-std",
  "cw-storage-plus 1.1.0",
  "cw20 1.1.1",
@@ -72,9 +72,9 @@ dependencies = [
 
 [[package]]
 name = "astroport"
-version = "2.8.7"
+version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ffbe52450e7812489ebeec13c9a95f17d7422e4cd397eba55644c3ee993ca36c"
+checksum = "78b863a982595743e181f89540d7aaeda35c60b6b5cac9c36c9be30cf11a5ece"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -83,35 +83,6 @@ dependencies = [
  "cw20 0.15.1",
  "itertools",
  "uint",
-]
-
-[[package]]
-name = "astroport"
-version = "3.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "195a7441515817c0d114ec3bebe9faa21393781f796c179c38c75e3cfb9fb4ec"
-dependencies = [
- "astroport-circular-buffer",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.15.1",
- "cw-utils 1.0.2",
- "cw20 0.15.1",
- "cw3",
- "itertools",
- "uint",
-]
-
-[[package]]
-name = "astroport-circular-buffer"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dac37467245383e7a6baeaaabc22dfd85a7b70ff5d693f757ba63bbc6e39d2c3"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.15.1",
- "thiserror",
 ]
 
 [[package]]
@@ -601,14 +572,13 @@ dependencies = [
 
 [[package]]
 name = "cw-dex"
-version = "0.5.0-rc.1"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f87bfb848746abf21c5eeb446f5e70a6820a3b505c554a5e1118feb552944c0"
+checksum = "6b8d40af4c29539a1c01e71d7c20cc0d65500b49ab98655e5ee7b5e7972c8bb5"
 dependencies = [
  "apollo-cw-asset",
  "apollo-utils",
- "astroport 2.8.7",
- "astroport 3.6.1",
+ "astroport",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-utils 1.0.2",
@@ -620,13 +590,12 @@ dependencies = [
 
 [[package]]
 name = "cw-it"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9067228bda68ea8eef97dc7e9dbdf3dae321bfa6cd2f24e623bcc78fee39d4a"
+checksum = "f452b759fc448ec05d20dc70f25dda8b83ba0a7c994049d27556fd1813a5ad0d"
 dependencies = [
  "anyhow",
- "astroport 2.8.7",
- "astroport 3.6.1",
+ "astroport",
  "config",
  "cosmrs",
  "cosmwasm-schema",
@@ -745,21 +714,6 @@ dependencies = [
  "cw-utils 1.0.2",
  "schemars",
  "serde",
-]
-
-[[package]]
-name = "cw3"
-version = "1.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d056ec33ec146554aa1d16c9535763341db75589a47743c006c377e62b54034"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-utils 1.0.2",
- "cw20 1.1.1",
- "schemars",
- "serde",
- "thiserror",
 ]
 
 [[package]]
