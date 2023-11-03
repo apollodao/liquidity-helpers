@@ -186,19 +186,18 @@ pub fn execute_balancing_provide_liquidity(
                 }
             }
 
-            let mut swap_res = Response::new();
             // Create message to swap some of the asset to the other
             if offer_asset.amount > Uint128::zero() && return_asset.amount > Uint128::zero() {
-                swap_res = pool.swap(
+                pool.swap(
                     deps.as_ref(),
                     &env,
                     offer_asset,
                     return_asset.info.clone(),
                     Uint128::one(),
-                )?;
+                )?
+            } else {
+                Response::new()
             }
-
-            swap_res
         }
         PairType::Custom(t) => match t.as_str() {
             "concentrated" => Response::new(),
