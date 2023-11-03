@@ -1,4 +1,3 @@
-use apollo_cw_asset::AssetList;
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{to_binary, Addr, CosmosMsg, Env, StdResult, Uint128, WasmMsg};
 use cw_dex::astroport::AstroportPool;
@@ -13,11 +12,6 @@ pub type ExecuteMsg = GenericExecuteMsg<CallbackMsg>;
 
 #[cw_serde]
 pub enum CallbackMsg {
-    ProvideLiquidity {
-        assets: AssetList,
-        min_out: Uint128,
-        pool: AstroportPool,
-    },
     ReturnLpTokens {
         pool: AstroportPool,
         balance_before: Uint128,
