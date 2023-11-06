@@ -45,6 +45,7 @@ apollo-utils      = { workspace = true }
 cw20              = { workspace = true }
 liquidity-helper  = { workspace = true }
 cw-bigint         = { workspace = true }
+semver            = { workspace = true }
 
 [dev-dependencies]
 cw-it             = { workspace = true, features = ["astroport", "osmosis-test-tube"] }

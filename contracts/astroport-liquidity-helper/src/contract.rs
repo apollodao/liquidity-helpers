@@ -16,7 +16,7 @@ use cw_dex::traits::Pool;
 
 use crate::error::ContractError;
 use crate::math::calc_xyk_balancing_swap;
-use crate::msg::{CallbackMsg, ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::msg::{CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use crate::state::ASTROPORT_FACTORY;
 
 // version info for migration info
@@ -261,5 +261,31 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
-#[cfg(test)]
-mod tests {}
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
+    // Read current cw2 version info
+    let cw2_data = cw2::get_contract_version(deps.storage)?;
+
+    // Only allow migrating to the same contract name
+    if cw2_data.contract != CONTRACT_NAME {
+        return Err(ContractError::InvalidContractName {
+            expected: CONTRACT_NAME.to_string(),
+            received: cw2_data.contract,
+        });
+    }
+
+    // Only allow migrating if the new version is greater than the current one
+    let old_version = semver::Version::parse(&cw2_data.version)?;
+    let new_version = semver::Version::parse(CONTRACT_VERSION)?;
+    if new_version <= old_version {
+        return Err(ContractError::InvalidContractVersion {
+            old_version,
+            new_version,
+        });
+    }
+
+    // Store new cw2 version info
+    set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
+    Ok(Response::default())
+}

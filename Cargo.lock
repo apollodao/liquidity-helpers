@@ -87,7 +87,7 @@ dependencies = [
 
 [[package]]
 name = "astroport-liquidity-helper"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "apollo-cw-asset",
  "apollo-utils",
@@ -100,6 +100,7 @@ dependencies = [
  "cw2 1.1.1",
  "cw20 1.1.1",
  "liquidity-helper",
+ "semver",
  "test-case",
  "thiserror",
 ]
@@ -1455,7 +1456,7 @@ checksum = "da2479e8c062e40bf0066ffa0bc823de0a9368974af99c9f6df941d2c231e03f"
 
 [[package]]
 name = "liquidity-helper"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "apollo-cw-asset",
  "apollo-utils",
@@ -1612,7 +1613,7 @@ checksum = "e2355d85b9a3786f481747ced0e0ff2ba35213a1f9bd406ed906554d7af805a1"
 
 [[package]]
 name = "osmosis-liquidity-helper"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "apollo-cw-asset",
  "cosmwasm-schema",
