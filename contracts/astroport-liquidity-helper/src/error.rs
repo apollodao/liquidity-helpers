@@ -17,6 +17,9 @@ pub enum ContractError {
     #[error("{0}")]
     Overflow(#[from] OverflowError),
 
+    #[error("{0}")]
+    Semver(#[from] semver::Error),
+
     #[error("Unauthorized")]
     Unauthorized {},
 
@@ -35,6 +38,22 @@ pub enum ContractError {
         min_out: Uint128,
         /// The actual amount of tokens received
         received: Uint128,
+    },
+
+    #[error("Can only migrate to a codeID with the correct name. Expected: {expected}, received: {received}")]
+    InvalidContractName {
+        /// The expected contract name
+        expected: String,
+        /// The actual contract name
+        received: String,
+    },
+
+    #[error("Can only migrate to a codeID with a newer version. Old version: {old_version}, new version: {new_version}")]
+    InvalidContractVersion {
+        /// The current contract version
+        old_version: semver::Version,
+        /// The version that the user is trying to migrate to
+        new_version: semver::Version,
     },
 }
 
