@@ -87,7 +87,7 @@ dependencies = [
 
 [[package]]
 name = "astroport-liquidity-helper"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "apollo-cw-asset",
  "apollo-utils",
@@ -573,9 +573,9 @@ dependencies = [
 
 [[package]]
 name = "cw-dex"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b8d40af4c29539a1c01e71d7c20cc0d65500b49ab98655e5ee7b5e7972c8bb5"
+checksum = "6f47ce1f0a02665dfe244bd5e396ecd3f8628fb8e6aabd1be38689501b6c139a"
 dependencies = [
  "apollo-cw-asset",
  "apollo-utils",
@@ -1456,7 +1456,7 @@ checksum = "da2479e8c062e40bf0066ffa0bc823de0a9368974af99c9f6df941d2c231e03f"
 
 [[package]]
 name = "liquidity-helper"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "apollo-cw-asset",
  "apollo-utils",
@@ -1613,7 +1613,7 @@ checksum = "e2355d85b9a3786f481747ced0e0ff2ba35213a1f9bd406ed906554d7af805a1"
 
 [[package]]
 name = "osmosis-liquidity-helper"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "apollo-cw-asset",
  "cosmwasm-schema",
