@@ -3,7 +3,7 @@ members = ["contracts/*", "packages/*"]
 resolver = "2"
 
 [workspace.package]
-version       = "0.3.1"
+version       = "0.3.2"
 edition       = "2021"
 license       = "MPL-2.0"
 homepage      = "https://apollo.farm"
@@ -19,7 +19,7 @@ cw20              = "1.1.0"
 cw-storage-plus   = "1.1.0"
 thiserror         = "1.0.45"
 apollo-cw-asset   = "0.1.2"
-cw-dex            = "0.5.0"
+cw-dex            = "0.5.1"
 apollo-utils      = "0.1.1"
 cw-bigint         = "0.4.3"
 liquidity-helper  = { version = "0.3.0", path = "./packages/liquidity-helper" }
