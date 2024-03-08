@@ -12,7 +12,7 @@ keywords      = ["cosmwasm", "liquidity", "provision", "osmosis", "astroport"]
 rust-version  = "1.64.0"
 
 [workspace.dependencies]
-cosmwasm-std      = "1.4.0"
+cosmwasm-std      = "1.5.3"
 cosmwasm-schema   = "1.4.0"
 cw2               = "1.1.0"
 cw20              = "1.1.0"
@@ -26,7 +26,7 @@ liquidity-helper  = { version = "0.3.0", path = "./packages/liquidity-helper" }
 semver            = "1.0.20"
 
 # Dev dependencies
-cw-it             = "0.2.2"
+cw-it             = "0.3.1"
 test-case         = "3.2.1"
 
 [profile.release]

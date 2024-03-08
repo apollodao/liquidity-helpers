@@ -2,7 +2,7 @@ use apollo_cw_asset::{Asset, AssetList};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    attr, from_binary, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response, StdError,
+    attr, from_json, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response, StdError,
     StdResult, Uint128,
 };
 use cw2::set_contract_version;
@@ -43,7 +43,7 @@ pub fn execute(
             recipient,
         } => {
             let assets = assets.check(deps.api)?;
-            let pool: OsmosisPool = from_binary(&pool)?;
+            let pool: OsmosisPool = from_json(&pool)?;
             execute_balancing_provide_liquidity(deps, env, info, assets, min_out, pool, recipient)
         }
         ExecuteMsg::Callback(msg) => {

@@ -1,7 +1,7 @@
 use apollo_cw_asset::{Asset, AssetInfo, AssetList};
 use astroport_liquidity_helper::math::calc_xyk_balancing_swap;
 use astroport_liquidity_helper::msg::InstantiateMsg;
-use cosmwasm_std::{assert_approx_eq, coin, to_binary, Addr, Coin, Decimal, Uint128};
+use cosmwasm_std::{assert_approx_eq, coin, to_json_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{AllowanceResponse, BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_dex::astroport::astroport::asset::{Asset as AstroAsset, AssetInfo as AstroAssetInfo};
 use cw_dex::astroport::astroport::factory::{
@@ -331,14 +331,14 @@ pub fn test_balancing_provide_liquidity(
     ];
     let init_params = match &pair_type {
         PairType::Stable {} => Some(
-            to_binary(&StablePoolParams {
+            to_json_binary(&StablePoolParams {
                 amp: 10u64,
                 owner: None,
             })
             .unwrap(),
         ),
         PairType::Custom(t) => match t.as_str() {
-            "concentrated" => Some(to_binary(&common_pcl_params()).unwrap()),
+            "concentrated" => Some(to_json_binary(&common_pcl_params()).unwrap()),
             _ => None,
         },
         _ => None,
@@ -443,7 +443,12 @@ pub fn test_balancing_provide_liquidity(
         ))
         .unwrap();
     let msgs = liquidity_helper
-        .balancing_provide_liquidity(assets, Uint128::zero(), to_binary(&pool).unwrap(), None)
+        .balancing_provide_liquidity(
+            assets,
+            Uint128::zero(),
+            to_json_binary(&pool).unwrap(),
+            None,
+        )
         .unwrap();
     let _res = runner
         .execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, admin)
