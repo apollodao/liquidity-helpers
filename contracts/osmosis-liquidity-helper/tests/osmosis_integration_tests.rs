@@ -2,7 +2,7 @@ use std::str::FromStr;
 use std::vec;
 
 use apollo_cw_asset::{Asset, AssetList};
-use cosmwasm_std::{to_binary, Addr, Coin, StdError, Uint128};
+use cosmwasm_std::{to_json_binary, Addr, Coin, StdError, Uint128};
 use cw_dex::osmosis::OsmosisPool;
 use cw_it::osmosis_std::types::cosmos::bank::v1beta1::QueryBalanceRequest;
 use cw_it::osmosis_std::types::cosmwasm::wasm::v1::MsgExecuteContractResponse;
@@ -175,7 +175,7 @@ where
         .balancing_provide_liquidity(
             assets.clone(),
             min_out,
-            to_binary(&pool).map_err(|e| RunnerError::GenericError(e.to_string()))?,
+            to_json_binary(&pool).map_err(|e| RunnerError::GenericError(e.to_string()))?,
             None,
         )
         .map_err(|e| RunnerError::GenericError(e.to_string()))?;
