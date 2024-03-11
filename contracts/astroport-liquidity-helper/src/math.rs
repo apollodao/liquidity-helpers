@@ -1,6 +1,7 @@
 //! Module containing implementations of calculations needed for swapping
 
 use apollo_cw_asset::Asset;
+use astroport_v3::pair_xyk_sale_tax::TaxConfigsChecked;
 use cosmwasm_std::{Decimal, Decimal256, StdError, StdResult, Uint128, Uint256};
 use cw_bigint::BigInt;
 
@@ -54,6 +55,7 @@ pub fn calc_xyk_balancing_swap(
     assets: [Asset; 2],
     reserves: [Uint128; 2],
     fee: Decimal,
+    tax_configs: Option<TaxConfigsChecked>,
 ) -> StdResult<(Asset, Asset)> {
     // Instead of trying to implement our own big decimal, we just use BigInt
     // and multiply and divide with this number before and after doing
@@ -94,6 +96,16 @@ pub fn calc_xyk_balancing_swap(
     let discriminant = &b * &b - (4u128 * &a * &c);
     //  We know that for this equation, there is only one positive real solution
     let x = (bigint_sqrt(discriminant)? - b) / (2u128 * a);
+
+    let offer_asset_info = &assets[offer_idx].info;
+    let tax_rate = tax_configs
+        .map(|tax_configs| {
+            tax_configs
+                .get(&offer_asset_info.to_string())
+                .map(|tax_config| tax_config.tax_rate)
+                .unwrap_or(Decimal::zero())
+        })
+        .unwrap_or(Decimal::zero());
 
     // Divide by precision to get final result and convert to Uint128
     let offer_amount = bigint_to_uint128(x / &precision)?;
@@ -249,7 +261,8 @@ mod test {
         println!("Reserves: {reserves:?}");
 
         // Calculate swap
-        let (swap_asset, return_asset) = calc_xyk_balancing_swap(assets, reserves, fee).unwrap();
+        let (swap_asset, return_asset) =
+            calc_xyk_balancing_swap(assets, reserves, fee, None).unwrap();
 
         println!("Swap: {swap_asset:?}, Return: {return_asset:?}");
 

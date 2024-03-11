@@ -1,6 +1,9 @@
-use apollo_cw_asset::{Asset, AssetList};
+use apollo_cw_asset::{Asset, AssetInfo, AssetList};
 use apollo_utils::assets::receive_assets;
+
 use apollo_utils::responses::merge_responses;
+use astroport_v3::asset::AssetInfo as AstroV3AssetInfo;
+use astroport_v3::pair_xyk_sale_tax::{SaleTaxInitParams, TaxConfigs};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -9,6 +12,7 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use cw_dex::astroport::astroport::factory::PairType;
+use cw_dex::astroport::astroport::pair::{ConfigResponse, QueryMsg as PairQueryMsg};
 use cw_dex::astroport::astroport::querier::query_fee_info;
 
 use cw_dex::astroport::AstroportPool;
@@ -53,7 +57,7 @@ pub fn execute(
             recipient,
         } => {
             let assets = assets.check(deps.api)?;
-            let pool: AstroportPool = from_json(&pool)?;
+            let pool: AstroportPool = from_json(pool)?;
             execute_balancing_provide_liquidity(deps, env, info, assets, min_out, pool, recipient)
         }
         ExecuteMsg::Callback(msg) => {
@@ -125,11 +129,38 @@ fn handle_xyk_balancing_provide_liquidity(
     )?;
     let fee = fee_info.total_fee_rate;
 
+    // Get sale tax if applicable
+    let tax_configs: Option<TaxConfigs<Addr>> = match &pool.pair_type {
+        PairType::Custom(t) => match t.as_str() {
+            "astroport-pair-xyk-sale-tax" => {
+                let config: ConfigResponse = deps
+                    .querier
+                    .query_wasm_smart(&pool.pair_addr, &PairQueryMsg::Config {})?;
+                let astro_asset_infos: Vec<AstroV3AssetInfo> = pool
+                    .pool_assets
+                    .iter()
+                    .map(|x| match x {
+                        AssetInfo::Cw20(addr) => AstroV3AssetInfo::cw20(addr.clone()),
+                        AssetInfo::Native(denom) => AstroV3AssetInfo::native(denom),
+                    })
+                    .collect();
+                let sale_tax_params: SaleTaxInitParams = from_json(config.params.unwrap())?;
+                let tax_configs = sale_tax_params
+                    .tax_configs
+                    .check(deps.api, &astro_asset_infos)?;
+                Some(tax_configs)
+            }
+            _ => None,
+        },
+        _ => None,
+    };
+
     // Calculate amount of tokens to swap
     let (offer_asset, return_asset) = calc_xyk_balancing_swap(
         assets_slice,
         [pool_reserves[0].amount, pool_reserves[1].amount],
         fee,
+        tax_configs,
     )?;
     // Update balances for liquidity provision
     assets.add(&return_asset)?;

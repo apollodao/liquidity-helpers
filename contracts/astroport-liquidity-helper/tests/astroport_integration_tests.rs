@@ -238,7 +238,7 @@ pub fn test_calc_xyk_balancing_swap() {
     ];
 
     let (offer_asset, return_asset) =
-        calc_xyk_balancing_swap(assets, reserves, total_fee_rate).unwrap();
+        calc_xyk_balancing_swap(assets, reserves, total_fee_rate, None).unwrap();
 
     // Simulate swap
     let simulation_result: SimulationResponse = wasm

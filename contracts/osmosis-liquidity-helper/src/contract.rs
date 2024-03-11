@@ -43,7 +43,7 @@ pub fn execute(
             recipient,
         } => {
             let assets = assets.check(deps.api)?;
-            let pool: OsmosisPool = from_json(&pool)?;
+            let pool: OsmosisPool = from_json(pool)?;
             execute_balancing_provide_liquidity(deps, env, info, assets, min_out, pool, recipient)
         }
         ExecuteMsg::Callback(msg) => {
