@@ -444,6 +444,21 @@ pub mod big_decimal {
             assert_eq!(a.clone() + &b, expected);
             assert_eq!(a + b, expected);
         }
+
+        #[test_case(0, 0, 0; "zero minus zero")]
+        #[test_case(1, 0, 1; "one minus zero")]
+        #[test_case(0, 1, -1; "zero minus one")]
+        #[test_case(1, 1, 0; "one minus one")]
+        #[test_case(12346, 45678, -33332; "12346 minus 45678")]
+        fn test_bigdecimal_sub_bigdecimal(a: i128, b: i128, expected: i128) {
+            let a = BigDecimal::new(a.into());
+            let b = BigDecimal::new(b.into());
+            let expected = BigDecimal::new(expected.into());
+            assert_eq!(&a - &b, expected);
+            assert_eq!(&a - b.clone(), expected);
+            assert_eq!(a.clone() - &b, expected);
+            assert_eq!(a - b, expected);
+        }
     }
 }
 
