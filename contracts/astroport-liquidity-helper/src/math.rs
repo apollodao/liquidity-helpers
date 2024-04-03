@@ -402,6 +402,34 @@ pub mod big_decimal {
         ))
     }
 
+    #[cfg(test)]
+    mod tests {
+        use super::bigint_to_u128;
+        use cosmwasm_std::{StdError, StdResult};
+        use cw_bigint::BigInt;
+        use test_case::test_case;
+
+        #[test_case(0u128, 0u128 => Ok(0u128); "zero")]
+        #[test_case(1u128, 0u128 => Ok(1u128); "one")]
+        #[test_case(u128::MAX, 0u128 => Ok(u128::MAX); "u128::MAX")]
+        #[test_case(u128::MAX, 1u128 => Err(StdError::generic_err("Attempting to convert BigInt to u128 with overflow")); "u128::MAX + 1")]
+        fn test_bigint_to_u128(value1: u128, value2: u128) -> StdResult<u128> {
+            let big_int = BigInt::from(value1) + BigInt::from(value2);
+            bigint_to_u128(&big_int)
+        }
+
+        #[test]
+        fn test_bigint_to_u128_negative() {
+            let big_int = BigInt::from(-1);
+            let result = bigint_to_u128(&big_int);
+            assert_eq!(
+                result,
+                Err(StdError::generic_err(
+                    "Cannot convert a negative BigInt number to u128"
+                ))
+            );
+        }
+    }
 }
 
 /// Calculate how much will be returned from a swap in a constant product pool
