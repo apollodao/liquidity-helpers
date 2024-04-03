@@ -8,7 +8,10 @@ use cw_bigint::BigInt;
 use crate::math::big_decimal::{bigint_to_u128, BigDecimal};
 
 pub mod big_decimal {
-    use std::ops::{Add, Deref, Div, Mul, Sub};
+    use std::{
+        fmt::Display,
+        ops::{Add, Deref, Div, Mul, Sub},
+    };
 
     use cosmwasm_std::{Decimal, Fraction, StdError, StdResult, Uint128};
     use cw_bigint::BigInt;
@@ -19,12 +22,20 @@ pub mod big_decimal {
     pub struct BigDecimal(BigInt);
 
     impl BigDecimal {
+        pub fn new(value: BigInt) -> Self {
+            Self(value)
+        }
+
         pub fn zero() -> Self {
             Self(BigInt::from(0u128))
         }
 
         pub fn one() -> Self {
             Self(BigInt::from(BIG_DECIMAL_FRACTIONAL))
+        }
+
+        pub fn atomics(&self) -> BigInt {
+            self.0.clone()
         }
 
         /// Returns the square root of the BigDecimal.
@@ -43,9 +54,19 @@ pub mod big_decimal {
 
             let mut x = self.clone();
             let mut y = (x.clone() + Self::one()) / BigDecimal::from(2u128);
+            println!(
+                "x: {}, y: {}",
+                u128::try_from(x.0.clone()).unwrap(),
+                u128::try_from(y.0.clone()).unwrap()
+            );
             while y < x {
                 x = y.clone();
                 y = (x.clone() + self.clone() / x.clone()) / BigDecimal::from(2u128);
+                println!(
+                    "x: {}, y: {}",
+                    u128::try_from(x.0.clone()).unwrap(),
+                    u128::try_from(y.0.clone()).unwrap()
+                );
             }
             y
         }
@@ -72,6 +93,21 @@ pub mod big_decimal {
             self.0.clone() / BIG_DECIMAL_FRACTIONAL
         }
     }
+
+    // impl Display for BigDecimal {
+    //     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    //         let bigint_decimal_str = self.0.to_str_radix(10);
+    //         let str_len = bigint_decimal_str.len();
+    //         if str_len <= 18 {
+    //             // Pad with zeros if length is less than 18
+    //             let num_of_zeroes = 18 - str_len;
+    //             write!(f, "0.{}{}", "0".repeat(num_of_zeroes), bigint_decimal_str)
+    //         } else {
+    //             let (integer_part, fractional_part) = bigint_decimal_str.split_at(str_len - 18);
+    //             write!(f, "{}.{}", integer_part, fractional_part)
+    //         }
+    //     }
+    // }
 
     impl Mul for BigDecimal {
         type Output = Self;
@@ -404,10 +440,20 @@ pub mod big_decimal {
 
     #[cfg(test)]
     mod tests {
-        use super::bigint_to_u128;
+        use super::BIG_DECIMAL_FRACTIONAL;
+
+        use super::{bigint_to_u128, BigDecimal};
         use cosmwasm_std::{StdError, StdResult};
         use cw_bigint::BigInt;
         use test_case::test_case;
+
+        const BIG_DECIMAL_FRACTIONAL_I128: i128 = BIG_DECIMAL_FRACTIONAL as i128;
+
+        // #[test_case(0u128 => "0.000000000000000000"; "zero")]
+        // #[test_case(BIG_DECIMAL_FRACTIONAL => "1.000000000000000000"; "one")]
+        // fn test_bigdecimal_to_string(val: u128) -> String {
+        //     BigDecimal::new(val.into()).to_string()
+        // }
 
         #[test_case(0u128, 0u128 => Ok(0u128); "zero")]
         #[test_case(1u128, 0u128 => Ok(1u128); "one")]
@@ -508,18 +554,27 @@ pub mod big_decimal {
 
 /// Calculate how much will be returned from a swap in a constant product pool
 fn constant_product_formula(
-    offer_reserve: Uint128,
-    ask_reserve: Uint128,
+    offer_reserve: &BigInt,
+    ask_reserve: &BigInt,
     offer_amount: Uint128,
     fee: Decimal,
+    tax_rate: Decimal,
 ) -> StdResult<Uint128> {
-    let cp = offer_reserve.full_mul(ask_reserve);
-    let return_amount: Uint256 = (Decimal256::from_ratio(ask_reserve, 1u8)
-        - Decimal256::from_ratio(cp, offer_reserve + offer_amount))
-        * Uint256::from(1u8);
-    let commission_amount: Uint256 = return_amount * Decimal256::from(fee);
-    let return_amount: Uint256 = return_amount - commission_amount;
-    Ok(return_amount.try_into()?)
+    println!("constant_product_formula");
+    println!(
+        "offer_reserve: {}, ask_reserve: {}, offer_amount: {offer_amount}, fee: {fee}",
+        offer_reserve, ask_reserve
+    );
+    let cp = offer_reserve * ask_reserve;
+    let return_amount_bigint =
+        ask_reserve - cp / (offer_reserve + BigInt::from(offer_amount.u128()));
+    let return_amount: Uint128 = bigint_to_u128(&return_amount_bigint)?.into();
+    println!("return_amount: {return_amount}");
+    let commission_amount = return_amount * fee;
+    println!("commission_amount: {commission_amount}");
+    let return_amount = (return_amount - commission_amount) * (Decimal::one() - tax_rate);
+    println!("return_amount after tax: {return_amount}");
+    Ok(return_amount)
 }
 
 /// For a constant product pool, calculates how much of one asset we need to
@@ -530,11 +585,13 @@ fn constant_product_formula(
 /// and info of the asset we need to swap, and the asset that will be returned
 /// from the swap
 pub fn calc_xyk_balancing_swap(
+    deps: Deps,
     assets: [Asset; 2],
     reserves: [Uint128; 2],
     fee: Decimal,
     tax_configs: Option<TaxConfigsChecked>,
 ) -> StdResult<(Asset, Asset)> {
+    deps.api.debug("calc_xyk_balancing_swap");
     // Make sure there is liquidity in the pool
     if reserves[0].is_zero() || reserves[1].is_zero() {
         return Err(StdError::generic_err("No liquidity in pool"));
@@ -554,16 +611,16 @@ pub fn calc_xyk_balancing_swap(
     } else {
         (1, 0)
     };
-    let offer_reserve = Int256::from(reserves[offer_idx].u128());
-    let ask_reserve = Int256::from(reserves[ask_idx].u128());
-    let offer_balance = Int256::from(assets[offer_idx].amount.u128());
-    let ask_balance = Int256::from(assets[ask_idx].amount.u128());
+    let offer_reserve = &BigInt::from(reserves[offer_idx].u128());
+    let ask_reserve = &BigInt::from(reserves[ask_idx].u128());
+    let offer_balance = &BigInt::from(assets[offer_idx].amount.u128());
+    let ask_balance = &BigInt::from(assets[ask_idx].amount.u128());
 
-    let fee_rate = Decimal256::from(fee);
+    let fee_rate = &BigDecimal::from(fee);
 
     // Unwrap tax
     let offer_asset_info = &assets[offer_idx].info;
-    let tax_rate = tax_configs
+    let tax_rate_decimal = tax_configs
         .map(|tax_configs| {
             tax_configs
                 .get(&offer_asset_info.to_string())
@@ -571,36 +628,47 @@ pub fn calc_xyk_balancing_swap(
                 .unwrap_or(Decimal::zero())
         })
         .unwrap_or(Decimal::zero());
-    let tax_rate = Decimal256::from(tax_rate);
+    let tax_rate: &BigDecimal = &tax_rate_decimal.into();
 
+    deps.api.debug("pre calcs");
+
+    // Original formula:
+    let two = &BigDecimal::from(2u128);
+    let a = ask_reserve + ask_balance;
+    let b = two * offer_reserve * (ask_reserve + ask_balance)
+        - ((offer_reserve + offer_balance) * ask_reserve * fee_rate);
+    let c = offer_reserve * (offer_reserve * ask_balance - offer_balance * ask_reserve);
+    let discriminant = &b * &b - (two * two * &a * &c);
+    //  We know that for this equation, there is only one positive real solution
+    let x = (discriminant.sqrt() - b) / (two * a);
+
+    // New formula including tax:
     // Solve equation to find amount to swap
-    let two = Int256::from(2u128);
-    let four = two * two;
-    let numerator = mul(offer_reserve * ask_reserve, fee_rate - fee_rate * tax_rate)
-        + mul((offer_balance + offer_reserve) * ask_reserve, fee_rate)
-        - two * offer_reserve * (ask_balance + ask_reserve);
-    println!("numerator: {numerator}");
-    let discriminant = (two * &offer_reserve * &ask_balance
-        - mul(offer_balance * ask_reserve, fee_rate)
-        + two * mul(offer_reserve * ask_reserve, Decimal256::one() - fee_rate)
-        + mul(offer_reserve * ask_reserve, fee_rate * tax_rate))
-    .pow(2)
-        - four
-            * (ask_balance + ask_reserve + mul(ask_reserve, fee_rate * tax_rate - tax_rate))
-            * (offer_reserve.pow(2) * ask_balance - offer_balance * offer_reserve * ask_reserve);
-    println!("discriminant: {discriminant}");
-    let denominator = two
-        * (ask_balance + ask_reserve - mul(ask_reserve, tax_rate)
-            + mul(ask_reserve, fee_rate * tax_rate));
+    // let two = &BigDecimal::from(2u128);
+    // let four = two * two;
+    // let numerator = offer_reserve * ask_reserve * (fee_rate - fee_rate * tax_rate)
+    //     + (offer_balance + offer_reserve) * ask_reserve * fee_rate
+    //     - two * offer_reserve * (ask_balance + ask_reserve);
+    // deps.api.debug(&format!("numerator: {:?}", numerator));
+    // let discriminant = (two * offer_reserve * ask_balance - offer_balance * ask_reserve * fee_rate
+    //     + two * offer_reserve * ask_reserve * (BigDecimal::one() - fee_rate)
+    //     + offer_reserve * ask_reserve * fee_rate * tax_rate)
+    //     .pow(2)
+    //     - four
+    //         * (ask_balance + ask_reserve + ask_reserve * (fee_rate * tax_rate - tax_rate))
+    //         * (offer_reserve.pow(2) * ask_balance - offer_balance * offer_reserve * ask_reserve);
+    // deps.api.debug("discriminant: {discriminant}");
+    // let denominator = two
+    //     * (ask_balance + ask_reserve - ask_reserve * tax_rate + ask_reserve * fee_rate * tax_rate);
 
-    println!("denominator: {denominator}");
+    // deps.api.debug("denominator: {denominator}");
 
-    let x = (numerator + int256_sqrt(discriminant)?) / denominator;
+    // let x = (numerator + discriminant.sqrt()) / denominator;
 
-    println!("x: {x}");
+    deps.api.debug("x: {x}");
 
     // Divide by precision to get final result and convert to Uint128
-    let offer_amount: Uint128 = x.try_into()?;
+    let offer_amount: Uint128 = Uint128::try_from(x.floor().to_string().as_str())?;
     let offer_asset = Asset {
         amount: offer_amount,
         info: assets[offer_idx].info.clone(),
@@ -608,15 +676,18 @@ pub fn calc_xyk_balancing_swap(
 
     // Calculate return amount from swap
     let return_amount = constant_product_formula(
-        offer_reserve.try_into()?,
-        ask_reserve.try_into()?,
+        offer_reserve,
+        ask_reserve,
         offer_amount,
         fee,
+        tax_rate_decimal,
     )?;
     let return_asset = Asset {
         amount: return_amount,
         info: assets[ask_idx].info.clone(),
     };
+
+    println!("offer_asset: {offer_asset}, return_asset: {return_asset}");
 
     Ok((offer_asset, return_asset))
 }

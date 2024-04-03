@@ -20,6 +20,7 @@ cw-storage-plus   = "1.1.0"
 thiserror         = "1.0.45"
 apollo-cw-asset   = "0.1.2"
 cw-dex            = "0.5.1"
+cw-dex-astroport  = "0.1"
 apollo-utils      = "0.1.1"
 cw-bigint         = "0.4.3"
 liquidity-helper  = { version = "0.3.0", path = "./packages/liquidity-helper" }

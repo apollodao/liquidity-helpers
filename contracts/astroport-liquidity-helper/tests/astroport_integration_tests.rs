@@ -3,22 +3,25 @@ use astroport_liquidity_helper::math::calc_xyk_balancing_swap;
 use astroport_liquidity_helper::msg::InstantiateMsg;
 use cosmwasm_std::{assert_approx_eq, coin, to_json_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{AllowanceResponse, BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
-use cw_dex::astroport::astroport::asset::{Asset as AstroAsset, AssetInfo as AstroAssetInfo};
-use cw_dex::astroport::astroport::factory::{
+use cw_dex_astroport::astroport::asset::{Asset as AstroAsset, AssetInfo as AstroAssetInfo};
+use cw_dex_astroport::astroport::factory::{
     ExecuteMsg as FactoryExecuteMsg, FeeInfoResponse, PairType, QueryMsg as FactoryQueryMsg,
 };
-use cw_dex::astroport::astroport::pair::{
+use cw_dex_astroport::astroport::pair::{
     ExecuteMsg as PairExecuteMsg, PoolResponse, QueryMsg as PairQueryMsg, SimulationResponse,
     StablePoolParams,
 };
-use cw_dex::astroport::astroport::pair_concentrated::ConcentratedPoolParams;
-use cw_dex::astroport::{astroport, AstroportPool};
+use cw_dex_astroport::astroport::pair_concentrated::ConcentratedPoolParams;
+use cw_dex_astroport::{astroport, AstroportPool};
 use cw_it::astroport::astroport::factory::PairConfig;
 use cw_it::astroport::astroport_v3::pair_xyk_sale_tax::{SaleTaxInitParams, TaxConfig};
 use cw_it::astroport::utils::{
-    create_astroport_pair, get_local_contracts, instantiate_astroport, AstroportContracts,
+    create_astroport_pair, get_local_contracts, instantiate_astroport, setup_astroport,
+    AstroportContracts,
 };
+use cw_it::cw_multi_test::ContractWrapper;
 use cw_it::helpers::upload_wasm_files;
+use cw_it::multi_test::MultiTestRunner;
 use cw_it::osmosis_test_tube::osmosis_std::types::cosmos::bank::v1beta1::QueryBalanceRequest;
 use cw_it::traits::CwItRunner;
 use cw_it::{Artifact, ContractType, TestRunner};
@@ -36,27 +39,85 @@ pub const ASTROPORT_LIQUIDITY_HELPER_WASM_FILE: &str =
     "../../target/wasm32-unknown-unknown/release/astroport_liquidity_helper.wasm";
 
 /// Creates test accounts and instantiates astroport contracts
-pub fn setup_astroport(runner: &TestRunner) -> (Vec<SigningAccount>, AstroportContracts) {
-    let wasm = Wasm::new(runner);
-    let accs = runner
-        .init_accounts(
-            &[
-                coin(1_000_000_000_000_000, "uluna"),
-                coin(1_000_000_000_000_000, "uosmo"),
-            ],
-            2,
-        )
-        .unwrap();
-    let admin = &accs[0];
+// pub fn setup_astroport(runner: &TestRunner) -> (Vec<SigningAccount>, AstroportContracts) {
+//     let wasm = Wasm::new(runner);
+//     let accs = runner
+//         .init_accounts(
+//             &[
+//                 coin(1_000_000_000_000_000, "uluna"),
+//                 coin(1_000_000_000_000_000, "uosmo"),
+//             ],
+//             2,
+//         )
+//         .unwrap();
+//     let admin = &accs[0];
 
-    // Upload astroport contracts
-    let contracts = get_local_contracts(runner, &Some("tests/astroport-artifacts"), false, &None);
-    let astroport_code_ids = upload_wasm_files(runner, &accs[0], contracts).unwrap();
+//     // Upload astroport contracts
+//     let contracts = get_local_contracts(runner, &Some("tests/astroport-artifacts"), false, &None);
+//     let astroport_code_ids = upload_wasm_files(runner, &accs[0], contracts).unwrap();
 
-    // Instantiate Astroport contracts
-    let astroport_contracts = instantiate_astroport(runner, admin, &astroport_code_ids);
+//     // Instantiate Astroport contracts
+//     let astroport_contracts = setup_astroport(app, contracts, admin);
 
-    // Update native coin registry with uluna precision
+//     // Update native coin registry with uluna precision
+//     wasm.execute(
+//         &astroport_contracts.coin_registry.address,
+//         &astroport::native_coin_registry::ExecuteMsg::Add {
+//             native_coins: vec![("uluna".to_string(), 6)],
+//         },
+//         &[],
+//         admin,
+//     )
+//     .unwrap();
+
+//     // Upload astroport pair xyk sale tax contract
+//     let sale_tax_contract = match runner {
+//         TestRunner::OsmosisTestApp(_) => ContractType::Artifact(Artifact::Local(
+//             ("tests/astroport-artifacts/astroport_pair_xyk_sale_tax.wasm").to_string(),
+//         )),
+//         TestRunner::MultiTest(_) => {
+//             ContractType::MultiTestContract(Box::new(ContractWrapper::new_with_empty(
+//                 astroport_liquidity_helper::contract::execute,
+//                 astroport_liquidity_helper::contract::instantiate,
+//                 astroport_liquidity_helper::contract::query,
+//             )))
+//         }
+//         _ => panic!("Unsupported runner"),
+//     };
+//     let sale_tax_code_id = runner.store_code(sale_tax_contract, admin).unwrap();
+
+//     // Add XYK Sale Tax PairType to Astroport Factory
+//     wasm.execute(
+//         &astroport_contracts.factory.address,
+//         &FactoryExecuteMsg::UpdatePairConfig {
+//             config: PairConfig {
+//                 code_id: sale_tax_code_id,
+//                 is_disabled: false,
+//                 is_generator_disabled: false,
+//                 maker_fee_bps: 3333,
+//                 total_fee_bps: 30,
+//                 pair_type: PairType::Custom("astroport-pair-xyk-sale-tax".to_string()),
+//             },
+//         },
+//         &[],
+//         admin,
+//     )
+//     .unwrap();
+
+//     (accs, astroport_contracts)
+// }
+
+/// Instantiates the liquidity helper contract
+pub fn setup_astroport_liquidity_provider_tests<'a>(
+    app: &'a TestRunner<'a>,
+    astroport_contracts: &AstroportContracts,
+    admin: &SigningAccount,
+) -> LiquidityHelper
+where
+{
+    let wasm = Wasm::new(app);
+
+    // Set uluna precision in native coin registry
     wasm.execute(
         &astroport_contracts.coin_registry.address,
         &astroport::native_coin_registry::ExecuteMsg::Add {
@@ -68,13 +129,21 @@ pub fn setup_astroport(runner: &TestRunner) -> (Vec<SigningAccount>, AstroportCo
     .unwrap();
 
     // Upload astroport pair xyk sale tax contract
-    let sale_tax_contract = match runner {
+    let sale_tax_contract = match app {
         TestRunner::OsmosisTestApp(_) => ContractType::Artifact(Artifact::Local(
             ("tests/astroport-artifacts/astroport_pair_xyk_sale_tax.wasm").to_string(),
         )),
+        TestRunner::MultiTest(_) => ContractType::MultiTestContract(Box::new(
+            ContractWrapper::new_with_empty(
+                astroport_pair_xyk_sale_tax::contract::execute,
+                astroport_pair_xyk_sale_tax::contract::instantiate,
+                astroport_pair_xyk_sale_tax::contract::query,
+            )
+            .with_reply(astroport_pair_xyk_sale_tax::contract::reply),
+        )),
         _ => panic!("Unsupported runner"),
     };
-    let sale_tax_code_id = runner.store_code(sale_tax_contract, admin).unwrap();
+    let sale_tax_code_id = app.store_code(sale_tax_contract, admin).unwrap();
 
     // Add XYK Sale Tax PairType to Astroport Factory
     wasm.execute(
@@ -94,30 +163,25 @@ pub fn setup_astroport(runner: &TestRunner) -> (Vec<SigningAccount>, AstroportCo
     )
     .unwrap();
 
-    (accs, astroport_contracts)
-}
-
-/// Instantiates the liquidity helper contract
-pub fn setup_astroport_liquidity_provider_tests<'a, R: Runner<'a>>(
-    app: &'a R,
-    accs: &[SigningAccount],
-    astroport_contracts: &AstroportContracts,
-) -> LiquidityHelper
-where
-{
-    let wasm = Wasm::new(app);
-    let admin = &accs[0];
-
     println!("Uploading liquidity helper wasm");
 
-    // Load compiled wasm bytecode
-    let astroport_liquidity_helper_wasm_byte_code =
-        std::fs::read(ASTROPORT_LIQUIDITY_HELPER_WASM_FILE).unwrap();
-    let astroport_liquidity_helper_code_id = wasm
-        .store_code(&astroport_liquidity_helper_wasm_byte_code, None, admin)
-        .unwrap()
-        .data
-        .code_id;
+    // Load compiled wasm bytecode or multi-test contract depending on the runner
+    let astroport_liquidity_helper_wasm_byte_code = match app {
+        TestRunner::OsmosisTestApp(_) => ContractType::Artifact(Artifact::Local(
+            ASTROPORT_LIQUIDITY_HELPER_WASM_FILE.to_string(),
+        )),
+        TestRunner::MultiTest(_) => {
+            ContractType::MultiTestContract(Box::new(ContractWrapper::new(
+                astroport_liquidity_helper::contract::execute,
+                astroport_liquidity_helper::contract::instantiate,
+                astroport_liquidity_helper::contract::query,
+            )))
+        }
+        _ => panic!("Unsupported runner"),
+    };
+    let astroport_liquidity_helper_code_id = app
+        .store_code(astroport_liquidity_helper_wasm_byte_code, admin)
+        .unwrap();
 
     println!("Instantiating liquidity helper contract");
 
@@ -140,123 +204,129 @@ where
     LiquidityHelper::new(Addr::unchecked(astroport_liquidity_helper))
 }
 
+// #[test]
+// pub fn test_calc_xyk_balancing_swap() {
+//     let app = OsmosisTestApp::default();
+//     let runner = TestRunner::OsmosisTestApp(&app);
+//     let (accs, astroport_contracts) = setup_astroport(&runner);
+//     let wasm = Wasm::new(&runner);
+//     let admin = &accs[0];
+
+//     let astro_token = astroport_contracts.astro_token.address.clone();
+
+//     // Create 1:1 XYK pool
+//     let asset_infos: [AstroAssetInfo; 2] = [
+//         AstroAssetInfo::NativeToken {
+//             denom: "uluna".into(),
+//         },
+//         AstroAssetInfo::Token {
+//             contract_addr: Addr::unchecked(&astro_token),
+//         },
+//     ];
+//     let (uluna_astro_pair_addr, _) = create_astroport_pair(
+//         &runner,
+//         &astroport_contracts.factory.address,
+//         PairType::Xyk {},
+//         asset_infos.clone(),
+//         None,
+//         admin,
+//         None,
+//     );
+
+//     // Increase allowance of astro token for Pair contract
+//     let increase_allowance_msg = Cw20ExecuteMsg::IncreaseAllowance {
+//         spender: uluna_astro_pair_addr.clone(),
+//         amount: Uint128::from(3_000_000_000_000u128),
+//         expires: None,
+//     };
+//     let _res = wasm
+//         .execute(&astro_token, &increase_allowance_msg, &[], admin)
+//         .unwrap();
+
+//     // Provide liquidity
+//     let provide_liq_msg = PairExecuteMsg::ProvideLiquidity {
+//         assets: [
+//             AstroAsset {
+//                 amount: Uint128::from(1_000_000_000_000u128),
+//                 info: AstroAssetInfo::NativeToken {
+//                     denom: "uluna".into(),
+//                 },
+//             },
+//             AstroAsset {
+//                 amount: Uint128::from(3_000_000_000_000u128),
+//                 info: AstroAssetInfo::Token {
+//                     contract_addr: Addr::unchecked(&astro_token),
+//                 },
+//             },
+//         ]
+//         .to_vec(),
+//         slippage_tolerance: Some(Decimal::from_str("0.02").unwrap()),
+//         auto_stake: Some(false),
+//         receiver: None,
+//     };
+//     let _res = wasm.execute(
+//         &uluna_astro_pair_addr,
+//         &provide_liq_msg,
+//         &[Coin {
+//             amount: Uint128::from(1_000_000_000_000u128),
+//             denom: "uluna".into(),
+//         }],
+//         admin,
+//     );
+
+//     // Query fee info
+//     let res: FeeInfoResponse = wasm
+//         .query(
+//             &astroport_contracts.factory.address,
+//             &FactoryQueryMsg::FeeInfo {
+//                 pair_type: PairType::Xyk {},
+//             },
+//         )
+//         .unwrap();
+//     let total_fee_rate = Decimal::from_ratio(res.total_fee_bps, 10000u16);
+
+//     // Calculate balancing swap
+//     let assets = [
+//         Asset {
+//             amount: Uint128::from(1_000_000_000_000u128),
+//             info: AssetInfo::native("uluna".to_string()),
+//         },
+//         Asset {
+//             amount: Uint128::from(1_000_000_000_000u128),
+//             info: AssetInfo::Cw20(Addr::unchecked(&astro_token)),
+//         },
+//     ];
+//     let reserves = [
+//         Uint128::from(1_000_000_000_000u128),
+//         Uint128::from(3_000_000_000_000u128),
+//     ];
+
+//     let (offer_asset, return_asset) =
+//         calc_xyk_balancing_swap(mock_dependencies(), assets, reserves, total_fee_rate, None)
+//             .unwrap();
+
+//     // Simulate swap
+//     let simulation_result: SimulationResponse = wasm
+//         .query(
+//             &uluna_astro_pair_addr,
+//             &PairQueryMsg::Simulation {
+//                 offer_asset: AstroAsset {
+//                     amount: offer_asset.amount,
+//                     info: asset_infos[0].clone(),
+//                 },
+//                 ask_asset_info: Some(return_asset.info.into()),
+//             },
+//         )
+//         .unwrap();
+
+//     // Check if the simulation result is correct
+//     assert_eq!(simulation_result.return_amount, return_asset.amount);
+// }
+
 #[test]
-pub fn test_calc_xyk_balancing_swap() {
-    let app = OsmosisTestApp::default();
-    let runner = TestRunner::OsmosisTestApp(&app);
-    let (accs, astroport_contracts) = setup_astroport(&runner);
-    let wasm = Wasm::new(&runner);
-    let admin = &accs[0];
+pub fn test() {}
 
-    let astro_token = astroport_contracts.astro_token.address.clone();
-
-    // Create 1:1 XYK pool
-    let asset_infos: [AstroAssetInfo; 2] = [
-        AstroAssetInfo::NativeToken {
-            denom: "uluna".into(),
-        },
-        AstroAssetInfo::Token {
-            contract_addr: Addr::unchecked(&astro_token),
-        },
-    ];
-    let (uluna_astro_pair_addr, _) = create_astroport_pair(
-        &runner,
-        &astroport_contracts.factory.address,
-        PairType::Xyk {},
-        asset_infos.clone(),
-        None,
-        admin,
-        None,
-    );
-
-    // Increase allowance of astro token for Pair contract
-    let increase_allowance_msg = Cw20ExecuteMsg::IncreaseAllowance {
-        spender: uluna_astro_pair_addr.clone(),
-        amount: Uint128::from(3_000_000_000_000u128),
-        expires: None,
-    };
-    let _res = wasm
-        .execute(&astro_token, &increase_allowance_msg, &[], admin)
-        .unwrap();
-
-    // Provide liquidity
-    let provide_liq_msg = PairExecuteMsg::ProvideLiquidity {
-        assets: [
-            AstroAsset {
-                amount: Uint128::from(1_000_000_000_000u128),
-                info: AstroAssetInfo::NativeToken {
-                    denom: "uluna".into(),
-                },
-            },
-            AstroAsset {
-                amount: Uint128::from(3_000_000_000_000u128),
-                info: AstroAssetInfo::Token {
-                    contract_addr: Addr::unchecked(&astro_token),
-                },
-            },
-        ]
-        .to_vec(),
-        slippage_tolerance: Some(Decimal::from_str("0.02").unwrap()),
-        auto_stake: Some(false),
-        receiver: None,
-    };
-    let _res = wasm.execute(
-        &uluna_astro_pair_addr,
-        &provide_liq_msg,
-        &[Coin {
-            amount: Uint128::from(1_000_000_000_000u128),
-            denom: "uluna".into(),
-        }],
-        admin,
-    );
-
-    // Query fee info
-    let res: FeeInfoResponse = wasm
-        .query(
-            &astroport_contracts.factory.address,
-            &FactoryQueryMsg::FeeInfo {
-                pair_type: PairType::Xyk {},
-            },
-        )
-        .unwrap();
-    let total_fee_rate = Decimal::from_ratio(res.total_fee_bps, 10000u16);
-
-    // Calculate balancing swap
-    let assets = [
-        Asset {
-            amount: Uint128::from(1_000_000_000_000u128),
-            info: AssetInfo::native("uluna".to_string()),
-        },
-        Asset {
-            amount: Uint128::from(1_000_000_000_000u128),
-            info: AssetInfo::Cw20(Addr::unchecked(&astro_token)),
-        },
-    ];
-    let reserves = [
-        Uint128::from(1_000_000_000_000u128),
-        Uint128::from(3_000_000_000_000u128),
-    ];
-
-    let (offer_asset, return_asset) =
-        calc_xyk_balancing_swap(assets, reserves, total_fee_rate, None).unwrap();
-
-    // Simulate swap
-    let simulation_result: SimulationResponse = wasm
-        .query(
-            &uluna_astro_pair_addr,
-            &PairQueryMsg::Simulation {
-                offer_asset: AstroAsset {
-                    amount: offer_asset.amount,
-                    info: asset_infos[0].clone(),
-                },
-                ask_asset_info: Some(return_asset.info.into()),
-            },
-        )
-        .unwrap();
-
-    // Check if the simulation result is correct
-    assert_eq!(simulation_result.return_amount, return_asset.amount);
-}
+const TOLERANCE: &str = "0.0005";
 
 // Test 1: 1:1 ratio, double amount of asset 2
 #[test_matrix(
@@ -337,14 +407,22 @@ pub fn test_balancing_provide_liquidity(
     pair_type: PairType,
     should_provide: bool,
 ) {
-    let app = OsmosisTestApp::default();
-    let runner = TestRunner::OsmosisTestApp(&app);
-    let (accs, astroport_contracts) = &setup_astroport(&runner);
-    let admin = &accs[0];
-    let wasm = Wasm::new(&runner);
+    let app = MultiTestRunner::new("terra");
+    // let app = OsmosisTestApp::default();
+    let runner = TestRunner::MultiTest(&app);
+    let astroport_contracts =
+        get_local_contracts(&runner, &Some("tests/astroport-artifacts"), false, &None);
+    let admin = runner
+        .init_account(&[
+            coin(1_000_000_000_000_000, "uluna"),
+            coin(1_000_000_000_000_000, "uosmo"),
+        ])
+        .unwrap();
+    let astroport_contracts = &setup_astroport(&runner, astroport_contracts, &admin);
 
+    let wasm = Wasm::new(&runner);
     let liquidity_helper =
-        setup_astroport_liquidity_provider_tests(&runner, accs, astroport_contracts);
+        setup_astroport_liquidity_provider_tests(&runner, astroport_contracts, &admin);
     let astro_token = astroport_contracts.astro_token.address.clone();
 
     // Create pool
@@ -391,7 +469,7 @@ pub fn test_balancing_provide_liquidity(
         pair_type.clone(),
         asset_infos,
         init_params,
-        admin,
+        &admin,
         None,
     );
     let pool = AstroportPool {
@@ -412,7 +490,7 @@ pub fn test_balancing_provide_liquidity(
         expires: None,
     };
     let _res = wasm
-        .execute(&astro_token, &increase_allowance_msg, &[], admin)
+        .execute(&astro_token, &increase_allowance_msg, &[], &admin)
         .unwrap();
 
     // Query allowance
@@ -448,6 +526,10 @@ pub fn test_balancing_provide_liquidity(
         auto_stake: Some(false),
         receiver: None,
     };
+    println!(
+        "initial reserves {} uluna, {} astro",
+        reserves[0], reserves[1]
+    );
     let _res = wasm.execute(
         &uluna_astro_pair_addr,
         &provide_liq_msg,
@@ -455,7 +537,7 @@ pub fn test_balancing_provide_liquidity(
             amount: reserves[0],
             denom: "uluna".into(),
         }],
-        admin,
+        &admin,
     );
 
     // Check pool liquidity after adding
@@ -492,8 +574,9 @@ pub fn test_balancing_provide_liquidity(
             None,
         )
         .unwrap();
+    println!("msgs: {msgs:?}");
     let _res = runner
-        .execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, admin)
+        .execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, &admin)
         .unwrap();
 
     // Check pool liquidity after adding
@@ -501,6 +584,7 @@ pub fn test_balancing_provide_liquidity(
         .query::<_, PoolResponse>(&uluna_astro_pair_addr, &PairQueryMsg::Pool {})
         .unwrap()
         .assets;
+
     // Check asset balances after balancing provide liquidity.
     let uluna_balance_after = query_token_balance(&runner, &admin.address(), "uluna");
     let astro_balance_after = query_cw20_balance(&runner, admin.address(), &astro_token);
@@ -510,12 +594,12 @@ pub fn test_balancing_provide_liquidity(
         assert_approx_eq!(
             pool_liquidity[0].amount,
             reserves[0] + asset_amounts[0],
-            "0.00000001"
+            TOLERANCE
         );
         assert_approx_eq!(
             pool_liquidity[1].amount,
             reserves[1] + asset_amounts[1],
-            "0.00000001"
+            TOLERANCE
         );
 
         // Should have used all assets

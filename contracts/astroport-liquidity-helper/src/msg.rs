@@ -1,6 +1,6 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{to_json_binary, Addr, CosmosMsg, Env, StdResult, Uint128, WasmMsg};
-use cw_dex::astroport::AstroportPool;
+use cw_dex_astroport::AstroportPool;
 use liquidity_helper::msg::ExecuteMsg as GenericExecuteMsg;
 
 #[cw_serde]
