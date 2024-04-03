@@ -461,6 +461,23 @@ pub mod big_decimal {
             assert_eq!(a.clone() - &b, expected);
             assert_eq!(a - b, expected);
         }
+
+        #[test_case(0, 0, 0; "zero times zero")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL, 0, 0; "one times zero")]
+        #[test_case(0, BIG_DECIMAL_FRACTIONAL, 0; "zero times one")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL, BIG_DECIMAL_FRACTIONAL, BIG_DECIMAL_FRACTIONAL; "one times one")]
+        #[test_case(1_000_000_000, 1_000_000_000, 1; "10^9 times 10^9")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL, BIG_DECIMAL_FRACTIONAL / 2, BIG_DECIMAL_FRACTIONAL / 2; "one times 0.5")]
+        fn test_bigdecimal_mul_bigdecimal(a: u128, b: u128, expected: u128) {
+            let a = BigDecimal::new(a.into());
+            let b = BigDecimal::new(b.into());
+            let expected = BigDecimal::new(expected.into());
+            println!("{:?}, {:?}", &a * &b, expected);
+            assert_eq!(&a * &b, expected);
+            assert_eq!(&a * b.clone(), expected);
+            assert_eq!(a.clone() * &b, expected);
+            assert_eq!(a * b, expected);
+        }
     }
 }
 
