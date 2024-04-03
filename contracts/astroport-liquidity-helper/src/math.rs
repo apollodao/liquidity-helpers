@@ -429,6 +429,21 @@ pub mod big_decimal {
                 ))
             );
         }
+
+        #[test_case(0u128, 0u128, 0u128; "zero plus zero")]
+        #[test_case(1u128, 0u128, 1u128; "one plus zero")]
+        #[test_case(0u128, 1u128, 1u128; "zero plus one")]
+        #[test_case(1u128, 1u128, 2u128; "one plus one")]
+        #[test_case(12346u128, 45678u128, 58024u128; "12346 plus 45678")]
+        fn test_bigdecimal_add_bigdecimal(a: u128, b: u128, expected: u128) {
+            let a = BigDecimal::new(a.into());
+            let b = BigDecimal::new(b.into());
+            let expected = BigDecimal::new(expected.into());
+            assert_eq!(&a + &b, expected);
+            assert_eq!(&a + b.clone(), expected);
+            assert_eq!(a.clone() + &b, expected);
+            assert_eq!(a + b, expected);
+        }
     }
 }
 
