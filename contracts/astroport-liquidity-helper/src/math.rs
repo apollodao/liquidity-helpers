@@ -431,10 +431,10 @@ pub mod big_decimal {
         }
 
         #[test_case(0u128, 0u128, 0u128; "zero plus zero")]
-        #[test_case(1u128, 0u128, 1u128; "one plus zero")]
-        #[test_case(0u128, 1u128, 1u128; "zero plus one")]
-        #[test_case(1u128, 1u128, 2u128; "one plus one")]
-        #[test_case(12346u128, 45678u128, 58024u128; "12346 plus 45678")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL, 0u128, BIG_DECIMAL_FRACTIONAL; "one plus zero")]
+        #[test_case(0u128, BIG_DECIMAL_FRACTIONAL, BIG_DECIMAL_FRACTIONAL; "zero plus one")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL, BIG_DECIMAL_FRACTIONAL, 2 * BIG_DECIMAL_FRACTIONAL; "one plus one")]
+        #[test_case(12346u128, 45678u128, 58024u128; "0.000000000000012346 plus 0.000000000000045678")]
         fn test_bigdecimal_add_bigdecimal(a: u128, b: u128, expected: u128) {
             let a = BigDecimal::new(a.into());
             let b = BigDecimal::new(b.into());
@@ -446,10 +446,12 @@ pub mod big_decimal {
         }
 
         #[test_case(0, 0, 0; "zero minus zero")]
-        #[test_case(1, 0, 1; "one minus zero")]
-        #[test_case(0, 1, -1; "zero minus one")]
-        #[test_case(1, 1, 0; "one minus one")]
-        #[test_case(12346, 45678, -33332; "12346 minus 45678")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL as i128, 0, BIG_DECIMAL_FRACTIONAL as i128; "one minus zero")]
+        #[test_case(0, BIG_DECIMAL_FRACTIONAL as i128, -(BIG_DECIMAL_FRACTIONAL as i128); "zero minus one")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL as i128, BIG_DECIMAL_FRACTIONAL as i128, 0; "one minus one")]
+        #[test_case(1, 0, 1; "10^-18 minus zero")]
+        #[test_case(0, 1, -1; "zero minus 10^-18")]
+        #[test_case(1, 1, 0; "10^-18 minus 10^-18")]
         fn test_bigdecimal_sub_bigdecimal(a: i128, b: i128, expected: i128) {
             let a = BigDecimal::new(a.into());
             let b = BigDecimal::new(b.into());
