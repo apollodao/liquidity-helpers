@@ -478,6 +478,22 @@ pub mod big_decimal {
             assert_eq!(a.clone() * &b, expected);
             assert_eq!(a * b, expected);
         }
+
+        #[test_case(0, 1, 0; "zero over 10^-18")]
+        #[test_case(1, 1, BIG_DECIMAL_FRACTIONAL as i128; "10^-18 over 10^-18")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL as i128, 2 * BIG_DECIMAL_FRACTIONAL as i128, BIG_DECIMAL_FRACTIONAL as i128 / 2 ; "1 over 2")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL as i128, 3 * BIG_DECIMAL_FRACTIONAL as i128, BIG_DECIMAL_FRACTIONAL as i128 / 3 ; "1 over 3")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL as i128,  BIG_DECIMAL_FRACTIONAL as i128, BIG_DECIMAL_FRACTIONAL as i128 ; "1 over 1")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL as i128,  -(BIG_DECIMAL_FRACTIONAL as i128), -(BIG_DECIMAL_FRACTIONAL as i128) ; "1 over neg 1")]
+        fn test_bigdecimal_div_bigdecimal(a: i128, b: i128, expected: i128) {
+            let a = BigDecimal::new(a.into());
+            let b = BigDecimal::new(b.into());
+            let expected = BigDecimal::new(expected.into());
+            assert_eq!(&a / &b, expected);
+            assert_eq!(&a / b.clone(), expected);
+            assert_eq!(a.clone() / &b, expected);
+            assert_eq!(a / b, expected);
+        }
     }
 }
 
