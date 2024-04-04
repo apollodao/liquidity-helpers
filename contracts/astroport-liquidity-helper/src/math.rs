@@ -54,19 +54,10 @@ pub mod big_decimal {
 
             let mut x = self.clone();
             let mut y = (x.clone() + Self::one()) / BigDecimal::from(2u128);
-            println!(
-                "x: {}, y: {}",
-                u128::try_from(x.0.clone()).unwrap(),
-                u128::try_from(y.0.clone()).unwrap()
-            );
+
             while y < x {
                 x = y.clone();
                 y = (x.clone() + self.clone() / x.clone()) / BigDecimal::from(2u128);
-                println!(
-                    "x: {}, y: {}",
-                    u128::try_from(x.0.clone()).unwrap(),
-                    u128::try_from(y.0.clone()).unwrap()
-                );
             }
             y
         }
@@ -740,7 +731,7 @@ pub fn calc_xyk_balancing_swap(
     // let numerator = offer_reserve * ask_reserve * (fee_rate - fee_rate * tax_rate)
     //     + (offer_balance + offer_reserve) * ask_reserve * fee_rate
     //     - two * offer_reserve * (ask_balance + ask_reserve);
-    // deps.api.debug(&format!("numerator: {:?}", numerator));
+    // println!("numerator: {:?}", numerator);
     // let discriminant = (two * offer_reserve * ask_balance - offer_balance * ask_reserve * fee_rate
     //     + two * offer_reserve * ask_reserve * (BigDecimal::one() - fee_rate)
     //     + offer_reserve * ask_reserve * fee_rate * tax_rate)
@@ -748,18 +739,18 @@ pub fn calc_xyk_balancing_swap(
     //     - four
     //         * (ask_balance + ask_reserve + ask_reserve * (fee_rate * tax_rate - tax_rate))
     //         * (offer_reserve.pow(2) * ask_balance - offer_balance * offer_reserve * ask_reserve);
-    // deps.api.debug("discriminant: {discriminant}");
+    // println!("discriminant: {discriminant:?}");
     // let denominator = two
     //     * (ask_balance + ask_reserve - ask_reserve * tax_rate + ask_reserve * fee_rate * tax_rate);
 
-    // deps.api.debug("denominator: {denominator}");
+    // println!("denominator: {denominator:?}");
 
     // let x = (numerator + discriminant.sqrt()) / denominator;
 
     println!("x: {x:?}");
 
     // Divide by precision to get final result and convert to Uint128
-    let offer_amount: Uint128 = Uint128::try_from(x.floor().to_string().as_str())?;
+    let offer_amount: Uint128 = bigint_to_u128(&x.floor())?.into();
     let offer_asset = Asset {
         amount: offer_amount,
         info: assets[offer_idx].info.clone(),
@@ -795,7 +786,7 @@ mod test {
     /// permille)
     fn assert_decimal_almost_eq(a: Decimal, b: Decimal) {
         let diff = if a > b { (a - b) / a } else { (b - a) / b };
-        let max_allowed_diff = Decimal::permille(2);
+        let max_allowed_diff = Decimal::permille(1);
         if diff > max_allowed_diff {
             panic!("Failed assert decimal almost eq for a: {a}, b: {b}. diff: {diff}, max allowed: {max_allowed_diff}");
         }
