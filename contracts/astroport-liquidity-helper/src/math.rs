@@ -277,6 +277,22 @@ pub mod big_decimal {
         }
     }
 
+    impl<'a> Add<&'a BigInt> for BigDecimal {
+        type Output = BigDecimal;
+
+        fn add(self, rhs: &'a BigInt) -> Self::Output {
+            self + rhs.clone()
+        }
+    }
+
+    impl<'a> Add<BigDecimal> for &'a BigInt {
+        type Output = BigDecimal;
+
+        fn add(self, rhs: BigDecimal) -> Self::Output {
+            rhs + self.clone()
+        }
+    }
+
     impl<'a, 'b> Add<&'a BigDecimal> for &'b BigInt {
         type Output = BigDecimal;
 
@@ -346,6 +362,38 @@ pub mod big_decimal {
 
         fn sub(self, rhs: &'a BigDecimal) -> Self::Output {
             BigDecimal(self.clone() * BIG_DECIMAL_FRACTIONAL - rhs.0.clone())
+        }
+    }
+
+    impl<'a> Sub<BigInt> for &'a BigDecimal {
+        type Output = BigDecimal;
+
+        fn sub(self, rhs: BigInt) -> Self::Output {
+            BigDecimal(self.0.clone() - rhs * BIG_DECIMAL_FRACTIONAL)
+        }
+    }
+
+    impl<'a> Sub<&'a BigInt> for BigDecimal {
+        type Output = BigDecimal;
+
+        fn sub(self, rhs: &'a BigInt) -> Self::Output {
+            BigDecimal(self.0 - rhs.clone() * BIG_DECIMAL_FRACTIONAL)
+        }
+    }
+
+    impl<'a> Sub<BigDecimal> for &'a BigInt {
+        type Output = BigDecimal;
+
+        fn sub(self, rhs: BigDecimal) -> Self::Output {
+            BigDecimal(self.clone() * BIG_DECIMAL_FRACTIONAL - rhs.0)
+        }
+    }
+
+    impl<'a> Sub<&'a BigDecimal> for BigInt {
+        type Output = BigDecimal;
+
+        fn sub(self, rhs: &'a BigDecimal) -> Self::Output {
+            BigDecimal(self * BIG_DECIMAL_FRACTIONAL - rhs.0.clone())
         }
     }
 
@@ -447,8 +495,6 @@ pub mod big_decimal {
         use cw_bigint::BigInt;
         use test_case::test_case;
 
-        const BIG_DECIMAL_FRACTIONAL_I128: i128 = BIG_DECIMAL_FRACTIONAL as i128;
-
         // #[test_case(0u128 => "0.000000000000000000"; "zero")]
         // #[test_case(BIG_DECIMAL_FRACTIONAL => "1.000000000000000000"; "one")]
         // fn test_bigdecimal_to_string(val: u128) -> String {
@@ -548,6 +594,51 @@ pub mod big_decimal {
         #[test_case(-(BIG_DECIMAL_FRACTIONAL as i128) => panics "Cannot compute the square root of a negative number." ; "negative one")]
         fn test_bigdecimal_sqrt(val: i128) -> u128 {
             bigint_to_u128(&BigDecimal::new(val.into()).sqrt().atomics()).unwrap()
+        }
+
+        #[test_case(0, 0, 0; "zero plus zero")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL, 0, BIG_DECIMAL_FRACTIONAL; "one plus zero")]
+        #[test_case(0, 1, BIG_DECIMAL_FRACTIONAL; "zero plus one")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL, 1, 2 * BIG_DECIMAL_FRACTIONAL; "one plus one")]
+        fn test_bigdecimal_add_bigint(a: u128, b: u128, expected: u128) {
+            let a = BigDecimal::new(a.into());
+            let b = BigInt::from(b);
+            let expected = BigDecimal::new(expected.into());
+            assert_eq!(&a + &b, expected);
+            assert_eq!(&a + b.clone(), expected);
+            assert_eq!(a.clone() + &b, expected);
+            assert_eq!(a + b, expected);
+        }
+
+        #[test_case(0, 0, 0; "zero minus zero")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL as i128, 0, BIG_DECIMAL_FRACTIONAL as i128; "one minus zero")]
+        #[test_case(0, 1, -(BIG_DECIMAL_FRACTIONAL as i128); "zero minus one")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL as i128, 1, 0; "one minus one")]
+        fn test_bigdecimal_sub_bigint(a: i128, b: i128, expected: i128) {
+            let a = BigDecimal::new(a.into());
+            let b = BigInt::from(b);
+            let expected = BigDecimal::new(expected.into());
+            assert_eq!(&a - &b, expected);
+            assert_eq!(&a - b.clone(), expected);
+            assert_eq!(a.clone() - &b, expected);
+            assert_eq!(a - b, expected);
+        }
+
+        #[test_case(0, 0, 0; "zero times zero")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL as i128, 0, 0; "one times zero")]
+        #[test_case(0, 1, 0; "zero times one")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL as i128, 1, BIG_DECIMAL_FRACTIONAL as i128; "one times one")]
+        #[test_case(BIG_DECIMAL_FRACTIONAL as i128, -1, -(BIG_DECIMAL_FRACTIONAL as i128); "one times neg one")]
+        #[test_case(1, 1, 1; "10^-18 times one")]
+        #[test_case(-(BIG_DECIMAL_FRACTIONAL as i128), 1, -(BIG_DECIMAL_FRACTIONAL as i128); "neg one times one")]
+        fn test_bigdecimal_mul_bigint(a: i128, b: i128, expected: i128) {
+            let a = BigDecimal::new(a.into());
+            let b = BigInt::from(b);
+            let expected = BigDecimal::new(expected.into());
+            assert_eq!(&a * &b, expected);
+            assert_eq!(&a * b.clone(), expected);
+            assert_eq!(a.clone() * &b, expected);
+            assert_eq!(a * b, expected);
         }
     }
 }
