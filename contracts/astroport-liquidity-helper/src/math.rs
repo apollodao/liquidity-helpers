@@ -676,13 +676,12 @@ fn constant_product_formula(
 /// and info of the asset we need to swap, and the asset that will be returned
 /// from the swap
 pub fn calc_xyk_balancing_swap(
-    deps: Deps,
     assets: [Asset; 2],
     reserves: [Uint128; 2],
     fee: Decimal,
     tax_configs: Option<TaxConfigsChecked>,
 ) -> StdResult<(Asset, Asset)> {
-    deps.api.debug("calc_xyk_balancing_swap");
+    println!("calc_xyk_balancing_swap");
     // Make sure there is liquidity in the pool
     if reserves[0].is_zero() || reserves[1].is_zero() {
         return Err(StdError::generic_err("No liquidity in pool"));
@@ -721,7 +720,7 @@ pub fn calc_xyk_balancing_swap(
         .unwrap_or(Decimal::zero());
     let tax_rate: &BigDecimal = &tax_rate_decimal.into();
 
-    deps.api.debug("pre calcs");
+    println!("pre calcs");
 
     // Original formula:
     let two = &BigDecimal::from(2u128);
@@ -756,7 +755,7 @@ pub fn calc_xyk_balancing_swap(
 
     // let x = (numerator + discriminant.sqrt()) / denominator;
 
-    deps.api.debug("x: {x}");
+    println!("x: {x:?}");
 
     // Divide by precision to get final result and convert to Uint128
     let offer_amount: Uint128 = Uint128::try_from(x.floor().to_string().as_str())?;
@@ -783,165 +782,165 @@ pub fn calc_xyk_balancing_swap(
     Ok((offer_asset, return_asset))
 }
 
-// #[cfg(test)]
-// mod test {
-//     use apollo_cw_asset::{Asset, AssetInfo};
-//     use cosmwasm_std::{testing::mock_dependencies, Decimal, Uint128};
-//     use test_case::test_case;
+#[cfg(test)]
+mod test {
+    use apollo_cw_asset::{Asset, AssetInfo};
+    use cosmwasm_std::{testing::mock_dependencies, Decimal, Uint128};
+    use test_case::test_case;
 
-//     use crate::math::calc_xyk_balancing_swap;
+    use crate::math::calc_xyk_balancing_swap;
 
-//     /// Assert that two Decimals are almost the same (diff smaller than one
-//     /// permille)
-//     fn assert_decimal_almost_eq(a: Decimal, b: Decimal) {
-//         let diff = if a > b { (a - b) / a } else { (b - a) / b };
-//         let max_allowed_diff = Decimal::permille(2);
-//         if diff > max_allowed_diff {
-//             panic!("Failed assert decimal almost eq for a: {a}, b: {b}. diff: {diff}, max allowed: {max_allowed_diff}");
-//         }
-//     }
+    /// Assert that two Decimals are almost the same (diff smaller than one
+    /// permille)
+    fn assert_decimal_almost_eq(a: Decimal, b: Decimal) {
+        let diff = if a > b { (a - b) / a } else { (b - a) / b };
+        let max_allowed_diff = Decimal::permille(2);
+        if diff > max_allowed_diff {
+            panic!("Failed assert decimal almost eq for a: {a}, b: {b}. diff: {diff}, max allowed: {max_allowed_diff}");
+        }
+    }
 
-//     // Assert that the ratio of the users assets is the same as the pool after the
-//     // swap
-//     fn assert_asset_ratios_same_after_swap(
-//         offer_reserve: Uint128,
-//         ask_reserve: Uint128,
-//         offer_balance: Uint128,
-//         ask_balance: Uint128,
-//         offer_amount: Uint128,
-//         return_amount: Uint128,
-//     ) {
-//         let asset_ratio_after_swap =
-//             Decimal::from_ratio(ask_balance + return_amount, offer_balance - offer_amount);
-//         let reserve_ratio_after_swap =
-//             Decimal::from_ratio(ask_reserve - return_amount, offer_reserve + offer_amount);
-//         println!(
-//             "asset_ratio_after_swap: {asset_ratio_after_swap}, reserve_ratio_after_swap: {reserve_ratio_after_swap}"
-//         );
-//         assert_decimal_almost_eq(asset_ratio_after_swap, reserve_ratio_after_swap);
-//     }
+    // Assert that the ratio of the users assets is the same as the pool after the
+    // swap
+    fn assert_asset_ratios_same_after_swap(
+        offer_reserve: Uint128,
+        ask_reserve: Uint128,
+        offer_balance: Uint128,
+        ask_balance: Uint128,
+        offer_amount: Uint128,
+        return_amount: Uint128,
+    ) {
+        let asset_ratio_after_swap =
+            Decimal::from_ratio(ask_balance + return_amount, offer_balance - offer_amount);
+        let reserve_ratio_after_swap =
+            Decimal::from_ratio(ask_reserve - return_amount, offer_reserve + offer_amount);
+        println!(
+            "asset_ratio_after_swap: {asset_ratio_after_swap}, reserve_ratio_after_swap: {reserve_ratio_after_swap}"
+        );
+        assert_decimal_almost_eq(asset_ratio_after_swap, reserve_ratio_after_swap);
+    }
 
-//     #[test_case(
-//         [Uint128::from(1_000_000u128), Uint128::from(2_000_000u128)],
-//         [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
-//         true,
-//         1;
-//         "Test 1: 1:1 ratio, double amount of asset 2"
-//     )]
-//     #[test_case(
-//         [Uint128::from(1_000_000u128), Uint128::from(2_000_000u128)],
-//         [Uint128::from(1_000_000_000_000u128), Uint128::from(5_000_000_000_000u128)],
-//         true,
-//         0;
-//         "Test 2: 1:5 ratio, double amount of asset 2"
-//     )]
-//     #[test_case(
-//         [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
-//         [Uint128::from(1_000_000_000_000u128), Uint128::from(3_000_000_000_000u128)],
-//         true,
-//         0;
-//         "Test 3: 1:3 pool ratio, 1:1 ratio of assets, but a lot of assets compared to pool (high slipage)"
-//     )]
-//     #[test_case(
-//         [Uint128::from(0u128), Uint128::from(1_000_000_000_000u128)],
-//         [Uint128::from(1_000_000_000_000u128), Uint128::from(2_000_000_000_000u128)],
-//         true,
-//         1;
-//         "Test 4: 1:2 pool ratio, 0:1 ratio of assets"
-//     )]
-//     #[test_case(
-//         [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
-//         [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
-//         false,
-//         1;
-//         "Test 5: 1:1 pool ratio, 1:1 ratio of assets"
-//     )]
-//     #[test_case(
-//         [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
-//         [Uint128::from(1_000_000_000_000u128), Uint128::from(0u128)],
-//         false,
-//         0
-//         => panics "No liquidity in pool";
-//         "Test 6: 1:0 pool ratio, should fail with correct error"
-//     )]
-//     #[test_case(
-//         [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
-//         [Uint128::from(0u128), Uint128::from(1_000_000_000_000u128)],
-//         false,
-//         0
-//         => panics "No liquidity in pool";
-//         "Test 7: 0:1 pool ratio, should fail with correct error"
-//     )]
-//     #[test_case(
-//         [Uint128::from(1_000_000_000_000u128), Uint128::from(0u128)],
-//         [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
-//         true,
-//         0;
-//         "Test 8: 1:1 pool ratio, 1:0 ratio of assets"
-//     )]
-//     #[test_case(
-//         [Uint128::from(0u128), Uint128::from(3564u128)],
-//         [Uint128::from(3450765745u128), Uint128::from(12282531965699u128)],
-//         true,
-//         1;
-//         "Test 9: Amount of asset less than one microunit of other asset"
-//     )]
-//     fn test_calc_xyk_balancing_swap(
-//         assets: [Uint128; 2],
-//         reserves: [Uint128; 2],
-//         should_swap: bool,
-//         offer_asset_idx: usize,
-//     ) {
-//         let assets = [
-//             Asset {
-//                 amount: assets[0],
-//                 info: AssetInfo::native("uatom".to_string()),
-//             },
-//             Asset {
-//                 amount: assets[1],
-//                 info: AssetInfo::native("uosmo".to_string()),
-//             },
-//         ];
-//         let offer_asset = assets[offer_asset_idx].clone();
-//         let ask_asset = assets[1 - offer_asset_idx].clone();
-//         let offer_reserve = reserves[offer_asset_idx];
-//         let ask_reserve = reserves[1 - offer_asset_idx];
+    #[test_case(
+        [Uint128::from(1_000_000u128), Uint128::from(2_000_000u128)],
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+        true,
+        1;
+        "Test 1: 1:1 ratio, double amount of asset 2"
+    )]
+    #[test_case(
+        [Uint128::from(1_000_000u128), Uint128::from(2_000_000u128)],
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(5_000_000_000_000u128)],
+        true,
+        0;
+        "Test 2: 1:5 ratio, double amount of asset 2"
+    )]
+    #[test_case(
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(3_000_000_000_000u128)],
+        true,
+        0;
+        "Test 3: 1:3 pool ratio, 1:1 ratio of assets, but a lot of assets compared to pool (high slipage)"
+    )]
+    #[test_case(
+        [Uint128::from(0u128), Uint128::from(1_000_000_000_000u128)],
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(2_000_000_000_000u128)],
+        true,
+        1;
+        "Test 4: 1:2 pool ratio, 0:1 ratio of assets"
+    )]
+    #[test_case(
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+        false,
+        1;
+        "Test 5: 1:1 pool ratio, 1:1 ratio of assets"
+    )]
+    #[test_case(
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(0u128)],
+        false,
+        0
+        => panics "No liquidity in pool";
+        "Test 6: 1:0 pool ratio, should fail with correct error"
+    )]
+    #[test_case(
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+        [Uint128::from(0u128), Uint128::from(1_000_000_000_000u128)],
+        false,
+        0
+        => panics "No liquidity in pool";
+        "Test 7: 0:1 pool ratio, should fail with correct error"
+    )]
+    #[test_case(
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(0u128)],
+        [Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)],
+        true,
+        0;
+        "Test 8: 1:1 pool ratio, 1:0 ratio of assets"
+    )]
+    #[test_case(
+        [Uint128::from(0u128), Uint128::from(3564u128)],
+        [Uint128::from(3450765745u128), Uint128::from(12282531965699u128)],
+        true,
+        1;
+        "Test 9: Amount of asset less than one microunit of other asset"
+    )]
+    fn test_calc_xyk_balancing_swap(
+        assets: [Uint128; 2],
+        reserves: [Uint128; 2],
+        should_swap: bool,
+        offer_asset_idx: usize,
+    ) {
+        let assets = [
+            Asset {
+                amount: assets[0],
+                info: AssetInfo::native("uatom".to_string()),
+            },
+            Asset {
+                amount: assets[1],
+                info: AssetInfo::native("uosmo".to_string()),
+            },
+        ];
+        let offer_asset = assets[offer_asset_idx].clone();
+        let ask_asset = assets[1 - offer_asset_idx].clone();
+        let offer_reserve = reserves[offer_asset_idx];
+        let ask_reserve = reserves[1 - offer_asset_idx];
 
-//         // Same fee for all test cases
-//         let fee = Decimal::permille(3);
+        // Same fee for all test cases
+        let fee = Decimal::permille(3);
 
-//         println!("Assets: {assets:?}");
-//         println!("Reserves: {reserves:?}");
+        println!("Assets: {assets:?}");
+        println!("Reserves: {reserves:?}");
 
-//         // Calculate swap
-//         let (swap_asset, return_asset) =
-//             calc_xyk_balancing_swap(mock_dependencies(), assets, reserves, fee, None).unwrap();
+        // Calculate swap
+        let (swap_asset, return_asset) =
+            calc_xyk_balancing_swap(assets, reserves, fee, None).unwrap();
 
-//         println!("Swap: {swap_asset:?}, Return: {return_asset:?}");
+        println!("Swap: {swap_asset:?}, Return: {return_asset:?}");
 
-//         // If ratios are already almost the same, no swap should happen
-//         if !should_swap {
-//             assert_eq!(swap_asset.amount, Uint128::zero());
-//         }
+        // If ratios are already almost the same, no swap should happen
+        if !should_swap {
+            assert_eq!(swap_asset.amount, Uint128::zero());
+        }
 
-//         // Assert that the correct asset is being offered
-//         assert_eq!(swap_asset.info, offer_asset.info);
+        // Assert that the correct asset is being offered
+        assert_eq!(swap_asset.info, offer_asset.info);
 
-//         // If the amount returned is zero because the swapped amount is too small
-//         // then the following assert will fail, so we just return here
-//         if return_asset.amount == Uint128::zero() {
-//             return;
-//         }
+        // If the amount returned is zero because the swapped amount is too small
+        // then the following assert will fail, so we just return here
+        if return_asset.amount == Uint128::zero() {
+            return;
+        }
 
-//         // Assert that the asset ratio and the pool ratio are the same after the swap
-//         assert_asset_ratios_same_after_swap(
-//             offer_reserve,
-//             ask_reserve,
-//             offer_asset.amount,
-//             ask_asset.amount,
-//             swap_asset.amount,
-//             return_asset.amount,
-//         );
-//         println!("------------------------------------");
-//     }
-// }
+        // Assert that the asset ratio and the pool ratio are the same after the swap
+        assert_asset_ratios_same_after_swap(
+            offer_reserve,
+            ask_reserve,
+            offer_asset.amount,
+            ask_asset.amount,
+            swap_asset.amount,
+            return_asset.amount,
+        );
+        println!("------------------------------------");
+    }
+}
