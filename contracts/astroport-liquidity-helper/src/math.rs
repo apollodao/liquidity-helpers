@@ -701,6 +701,7 @@ pub fn calc_xyk_balancing_swap(
     } else {
         (1, 0)
     };
+
     let offer_reserve = &BigInt::from(reserves[offer_idx].u128());
     let ask_reserve = &BigInt::from(reserves[ask_idx].u128());
     let offer_balance = &BigInt::from(assets[offer_idx].amount.u128());
@@ -785,7 +786,7 @@ pub fn calc_xyk_balancing_swap(
 #[cfg(test)]
 mod test {
     use apollo_cw_asset::{Asset, AssetInfo};
-    use cosmwasm_std::{testing::mock_dependencies, Decimal, Uint128};
+    use cosmwasm_std::{Decimal, Uint128};
     use test_case::test_case;
 
     use crate::math::calc_xyk_balancing_swap;
