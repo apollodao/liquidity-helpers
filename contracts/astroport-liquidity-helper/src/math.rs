@@ -2,7 +2,7 @@
 
 use apollo_cw_asset::Asset;
 use astroport_v3::pair_xyk_sale_tax::TaxConfigsChecked;
-use cosmwasm_std::{Decimal, Deps, Int256, StdError, StdResult, Uint128, Uint256};
+use cosmwasm_std::{Decimal, Decimal256, Deps, Int256, StdError, StdResult, Uint128, Uint256};
 use cw_bigint::BigInt;
 
 use crate::math::big_decimal::{bigint_to_u128, BigDecimal};
@@ -636,9 +636,9 @@ pub mod big_decimal {
 
 /// Calculate how much will be returned from a swap in a constant product pool
 fn constant_product_formula(
-    offer_reserve: &BigInt,
-    ask_reserve: &BigInt,
-    offer_amount: Uint128,
+    offer_reserve: Uint128,
+    ask_reserve: Uint128,
+    mut offer_amount: Uint128,
     fee: Decimal,
     tax_rate: Decimal,
 ) -> StdResult<Uint128> {
@@ -647,17 +647,24 @@ fn constant_product_formula(
         "offer_reserve: {}, ask_reserve: {}, offer_amount: {offer_amount}, fee: {fee}",
         offer_reserve, ask_reserve
     );
-    let cp = offer_reserve * ask_reserve;
-    let return_amount_bigint =
-        ask_reserve - cp / (offer_reserve + BigInt::from(offer_amount.u128()));
-    let return_amount: Uint128 = bigint_to_u128(&return_amount_bigint)?.into();
-    println!("return_amount: {return_amount}");
-    let commission_amount = return_amount * fee;
+    if !tax_rate.is_zero() {
+        let sale_tax = offer_amount * tax_rate;
+        offer_amount = offer_amount.checked_sub(sale_tax)?;
+    }
+    println!("offer_amount after tax: {offer_amount}");
+
+    let cp = offer_reserve.full_mul(ask_reserve);
+    let return_amount: Uint256 = (Decimal256::from_ratio(ask_reserve, 1u8)
+        - Decimal256::from_ratio(cp, offer_reserve + offer_amount))
+        * Uint256::from(1u8);
+        println!("return_amount: {return_amount}");
+    let commission_amount: Uint256 = return_amount * Decimal256::from(fee);
     println!("commission_amount: {commission_amount}");
-    let return_amount = (return_amount - commission_amount) * (Decimal::one() - tax_rate);
+    let return_amount: Uint256 = return_amount - commission_amount;
     println!("return_amount after tax: {return_amount}");
-    Ok(return_amount)
+    Ok(return_amount.try_into()?)
 }
+
 
 /// For a constant product pool, calculates how much of one asset we need to
 /// swap to the other in order to have the same ratio of assets as the pool, so
@@ -758,8 +765,8 @@ pub fn calc_xyk_balancing_swap(
 
     // Calculate return amount from swap
     let return_amount = constant_product_formula(
-        offer_reserve,
-        ask_reserve,
+        reserves[offer_idx],
+        reserves[ask_idx],
         offer_amount,
         fee,
         tax_rate_decimal,
