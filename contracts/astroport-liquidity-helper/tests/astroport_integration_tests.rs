@@ -1,26 +1,22 @@
 use apollo_cw_asset::{Asset, AssetInfo, AssetList};
-use astroport_liquidity_helper::math::calc_xyk_balancing_swap;
+
 use astroport_liquidity_helper::msg::InstantiateMsg;
 use cosmwasm_std::{assert_approx_eq, coin, to_json_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{AllowanceResponse, BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_dex_astroport::astroport::asset::{Asset as AstroAsset, AssetInfo as AstroAssetInfo};
-use cw_dex_astroport::astroport::factory::{
-    ExecuteMsg as FactoryExecuteMsg, FeeInfoResponse, PairType, QueryMsg as FactoryQueryMsg,
-};
+use cw_dex_astroport::astroport::factory::{ExecuteMsg as FactoryExecuteMsg, PairType};
 use cw_dex_astroport::astroport::pair::{
-    ExecuteMsg as PairExecuteMsg, PoolResponse, QueryMsg as PairQueryMsg, SimulationResponse,
-    StablePoolParams,
+    ExecuteMsg as PairExecuteMsg, PoolResponse, QueryMsg as PairQueryMsg, StablePoolParams,
 };
 use cw_dex_astroport::astroport::pair_concentrated::ConcentratedPoolParams;
 use cw_dex_astroport::{astroport, AstroportPool};
 use cw_it::astroport::astroport::factory::PairConfig;
 use cw_it::astroport::astroport_v3::pair_xyk_sale_tax::{SaleTaxInitParams, TaxConfig};
 use cw_it::astroport::utils::{
-    create_astroport_pair, get_local_contracts, instantiate_astroport, setup_astroport,
-    AstroportContracts,
+    create_astroport_pair, get_local_contracts, setup_astroport, AstroportContracts,
 };
 use cw_it::cw_multi_test::ContractWrapper;
-use cw_it::helpers::upload_wasm_files;
+
 use cw_it::multi_test::MultiTestRunner;
 use cw_it::osmosis_test_tube::osmosis_std::types::cosmos::bank::v1beta1::QueryBalanceRequest;
 use cw_it::traits::CwItRunner;
@@ -29,9 +25,7 @@ use liquidity_helper::LiquidityHelper;
 use test_case::test_matrix;
 
 use cw_it::osmosis_test_tube::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
-use cw_it::osmosis_test_tube::{
-    Account, Bank, Module, OsmosisTestApp, Runner, SigningAccount, Wasm,
-};
+use cw_it::osmosis_test_tube::{Account, Bank, Module, Runner, SigningAccount, Wasm};
 
 use std::str::FromStr;
 
@@ -53,8 +47,8 @@ pub const ASTROPORT_LIQUIDITY_HELPER_WASM_FILE: &str =
 //     let admin = &accs[0];
 
 //     // Upload astroport contracts
-//     let contracts = get_local_contracts(runner, &Some("tests/astroport-artifacts"), false, &None);
-//     let astroport_code_ids = upload_wasm_files(runner, &accs[0], contracts).unwrap();
+//     let contracts = get_local_contracts(runner, &Some("tests/astroport-artifacts"), false,
+// &None);     let astroport_code_ids = upload_wasm_files(runner, &accs[0], contracts).unwrap();
 
 //     // Instantiate Astroport contracts
 //     let astroport_contracts = setup_astroport(app, contracts, admin);
@@ -302,8 +296,8 @@ where
 //     ];
 
 //     let (offer_asset, return_asset) =
-//         calc_xyk_balancing_swap(mock_dependencies(), assets, reserves, total_fee_rate, None)
-//             .unwrap();
+//         calc_xyk_balancing_swap(mock_dependencies(), assets, reserves,
+// total_fee_rate, None)             .unwrap();
 
 //     // Simulate swap
 //     let simulation_result: SimulationResponse = wasm

@@ -2,16 +2,14 @@
 
 use apollo_cw_asset::Asset;
 use astroport_v3::pair_xyk_sale_tax::TaxConfigsChecked;
-use cosmwasm_std::{Decimal, Decimal256, Deps, Int256, StdError, StdResult, Uint128, Uint256};
+use cosmwasm_std::{Decimal, Decimal256, StdError, StdResult, Uint128, Uint256};
 use cw_bigint::BigInt;
 
 use crate::math::big_decimal::{bigint_to_u128, BigDecimal};
 
 pub mod big_decimal {
-    use std::{
-        fmt::Display,
-        ops::{Add, Deref, Div, Mul, Sub},
-    };
+
+    use std::ops::{Add, Div, Mul, Sub};
 
     use cosmwasm_std::{Decimal, Fraction, StdError, StdResult, Uint128};
     use cw_bigint::BigInt;
@@ -70,10 +68,11 @@ pub mod big_decimal {
                 return self.clone();
             }
 
-            // BigDecimal is a fixed-point number with BIG_DECIMAL_FRACTIONAL decimal places.
-            // x^y = (numerator / denominator)^y = numerator^y / denominator^y
-            //     = (numerator^y / denominator^(y-1)) / denominator
-            // which means we represent the new number as new_numerator = numerator^y / denominator^(y-1),
+            // BigDecimal is a fixed-point number with BIG_DECIMAL_FRACTIONAL decimal
+            // places. x^y = (numerator / denominator)^y = numerator^y /
+            // denominator^y     = (numerator^y / denominator^(y-1)) /
+            // denominator which means we represent the new number as
+            // new_numerator = numerator^y / denominator^(y-1),
             // and new_denominator = denominator.
             let value: BigInt = self.0.pow(exp) / BIG_DECIMAL_FRACTIONAL.pow(exp - 1);
 
@@ -92,11 +91,11 @@ pub mod big_decimal {
     //         if str_len <= 18 {
     //             // Pad with zeros if length is less than 18
     //             let num_of_zeroes = 18 - str_len;
-    //             write!(f, "0.{}{}", "0".repeat(num_of_zeroes), bigint_decimal_str)
-    //         } else {
-    //             let (integer_part, fractional_part) = bigint_decimal_str.split_at(str_len - 18);
-    //             write!(f, "{}.{}", integer_part, fractional_part)
-    //         }
+    //             write!(f, "0.{}{}", "0".repeat(num_of_zeroes),
+    // bigint_decimal_str)         } else {
+    //             let (integer_part, fractional_part) =
+    // bigint_decimal_str.split_at(str_len - 18);             write!(f, "{}.{}",
+    // integer_part, fractional_part)         }
     //     }
     // }
 
@@ -657,14 +656,13 @@ fn constant_product_formula(
     let return_amount: Uint256 = (Decimal256::from_ratio(ask_reserve, 1u8)
         - Decimal256::from_ratio(cp, offer_reserve + offer_amount))
         * Uint256::from(1u8);
-        println!("return_amount: {return_amount}");
+    println!("return_amount: {return_amount}");
     let commission_amount: Uint256 = return_amount * Decimal256::from(fee);
     println!("commission_amount: {commission_amount}");
     let return_amount: Uint256 = return_amount - commission_amount;
     println!("return_amount after tax: {return_amount}");
     Ok(return_amount.try_into()?)
 }
-
 
 /// For a constant product pool, calculates how much of one asset we need to
 /// swap to the other in order to have the same ratio of assets as the pool, so
@@ -717,7 +715,7 @@ pub fn calc_xyk_balancing_swap(
                 .unwrap_or(Decimal::zero())
         })
         .unwrap_or(Decimal::zero());
-    let tax_rate: &BigDecimal = &tax_rate_decimal.into();
+    let _tax_rate: &BigDecimal = &tax_rate_decimal.into();
 
     println!("pre calcs");
 
@@ -735,20 +733,25 @@ pub fn calc_xyk_balancing_swap(
     // Solve equation to find amount to swap
     // let two = &BigDecimal::from(2u128);
     // let four = two * two;
-    // let numerator = offer_reserve * ask_reserve * (fee_rate - fee_rate * tax_rate)
+    // let numerator = offer_reserve * ask_reserve * (fee_rate - fee_rate *
+    // tax_rate)
     //     + (offer_balance + offer_reserve) * ask_reserve * fee_rate
     //     - two * offer_reserve * (ask_balance + ask_reserve);
     // println!("numerator: {:?}", numerator);
-    // let discriminant = (two * offer_reserve * ask_balance - offer_balance * ask_reserve * fee_rate
+    // let discriminant = (two * offer_reserve * ask_balance - offer_balance *
+    // ask_reserve * fee_rate
     //     + two * offer_reserve * ask_reserve * (BigDecimal::one() - fee_rate)
     //     + offer_reserve * ask_reserve * fee_rate * tax_rate)
     //     .pow(2)
     //     - four
-    //         * (ask_balance + ask_reserve + ask_reserve * (fee_rate * tax_rate - tax_rate))
-    //         * (offer_reserve.pow(2) * ask_balance - offer_balance * offer_reserve * ask_reserve);
+    //         * (ask_balance + ask_reserve + ask_reserve * (fee_rate * tax_rate -
+    //           tax_rate))
+    //         * (offer_reserve.pow(2) * ask_balance - offer_balance * offer_reserve
+    //           * ask_reserve);
     // println!("discriminant: {discriminant:?}");
     // let denominator = two
-    //     * (ask_balance + ask_reserve - ask_reserve * tax_rate + ask_reserve * fee_rate * tax_rate);
+    //     * (ask_balance + ask_reserve - ask_reserve * tax_rate + ask_reserve *
+    //       fee_rate * tax_rate);
 
     // println!("denominator: {denominator:?}");
 
