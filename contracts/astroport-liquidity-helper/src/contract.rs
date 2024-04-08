@@ -84,155 +84,6 @@ pub fn execute(
     }
 }
 
-fn handle_xyk_balancing_provide_liquidity(
-    deps: Deps,
-    env: &Env,
-    info: MessageInfo,
-    pool: &AstroportPool,
-    assets: &mut AssetList,
-    min_out: Uint128,
-) -> Result<Response, ContractError> {
-    deps.api.debug("handle_xyk_balancing_provide_liquidity");
-    println!("assets before: {:?}", assets);
-    let pool_res = pool.query_pool_info(&deps.querier)?;
-
-    let pool_reserves: [Asset; 2] = [
-        Asset::from(pool_res.assets[0].clone()),
-        Asset::from(pool_res.assets[1].clone()),
-    ];
-    if assets.len() > 2 {
-        return Err(ContractError::MoreThanTwoAssets {});
-    }
-
-    // If only one asset is provided in the AssetList, we need to
-    // create the other asset with an empty amount
-    let assets_slice: [Asset; 2] = [
-        assets
-            .find(&pool_reserves[0].info)
-            .cloned()
-            .unwrap_or_else(|| Asset {
-                info: pool_reserves[0].info.clone(),
-                amount: Uint128::zero(),
-            }),
-        assets
-            .find(&pool_reserves[1].info)
-            .cloned()
-            .unwrap_or_else(|| Asset {
-                info: pool_reserves[1].info.clone(),
-                amount: Uint128::zero(),
-            }),
-    ];
-
-    // Get fee amount
-    let fee_info = query_fee_info(
-        &deps.querier,
-        ASTROPORT_FACTORY.load(deps.storage)?,
-        pool.pair_type.clone(),
-    )?;
-    let fee = fee_info.total_fee_rate;
-
-    // Get sale tax if applicable
-    let tax_configs: Option<TaxConfigs<Addr>> = match &pool.pair_type {
-        PairType::Custom(t) => match t.as_str() {
-            "astroport-pair-xyk-sale-tax" => {
-                let config: ConfigResponse = deps
-                    .querier
-                    .query_wasm_smart(&pool.pair_addr, &PairQueryMsg::Config {})?;
-                let astro_asset_infos: Vec<AstroV3AssetInfo> = pool
-                    .pool_assets
-                    .iter()
-                    .map(|x| match x {
-                        AssetInfo::Cw20(addr) => AstroV3AssetInfo::cw20(addr.clone()),
-                        AssetInfo::Native(denom) => AstroV3AssetInfo::native(denom),
-                    })
-                    .collect();
-                let sale_tax_params: SaleTaxInitParams = from_json(config.params.unwrap())?;
-                let tax_configs = sale_tax_params
-                    .tax_configs
-                    .check(deps.api, &astro_asset_infos)?;
-                Some(tax_configs)
-            }
-            _ => None,
-        },
-        _ => None,
-    };
-
-    println!("tax_configs: {:?}", tax_configs);
-
-    // Calculate amount of tokens to swap
-    let (offer_asset, return_asset) = calc_xyk_balancing_swap(
-        assets_slice,
-        [pool_reserves[0].amount, pool_reserves[1].amount],
-        fee,
-        tax_configs,
-    )?;
-
-    deps.api.debug(&format!("assets: {}", &assets.to_string()));
-
-    // Update balances for liquidity provision
-    assets.add(&return_asset)?;
-    assets.deduct(&offer_asset)?;
-
-    println!("assets after: {:?}", assets);
-    println!("offer_asset: {:?}", offer_asset);
-    println!("return_asset: {:?}", return_asset);
-
-    deps.api.debug("post deduction");
-
-    // If either of the assets are still zero after the swap, we can't
-    // provide liquidity. This can happen if the amount of tokens to swap
-    // is so small that the returned amount of the other asset would be zero.
-    if pool.pool_assets.iter().any(|x| {
-        assets
-            .find(x)
-            .map_or_else(Uint128::zero, |y| y.amount)
-            .is_zero()
-    }) {
-        if min_out.is_zero() {
-            // If min_out is zero, we can just return the received native
-            // assets. We don't need to return any Cw20 assets, because
-            // we did not execute the transferFrom on them. If no native
-            // assets were received, we don't need to return anything.
-            let event =
-                Event::new("apollo/astroport-liquidity-helper/execute_balancing_provide_liquidity")
-                    .add_attribute("action", "No liquidity provided. Zero amount of asset")
-                    .add_attribute("assets", assets.to_string())
-                    .add_attribute("min_out", min_out);
-            if !info.funds.is_empty() {
-                let return_msg = CosmosMsg::Bank(BankMsg::Send {
-                    to_address: info.sender.to_string(),
-                    amount: info.funds,
-                });
-                return Ok(Response::new().add_message(return_msg).add_event(event));
-            } else {
-                return Ok(Response::new().add_event(event));
-            }
-        } else {
-            // If min_out is not zero, we need to return an error
-            return Err(ContractError::MinOutNotReceived {
-                min_out,
-                received: Uint128::zero(),
-            });
-        }
-    }
-
-    println!("offer_asset: {:?}", offer_asset);
-    println!("return_asset: {:?}", return_asset);
-
-    // Create message to swap some of the asset to the other
-    if offer_asset.amount > Uint128::zero() && return_asset.amount > Uint128::zero() {
-        Ok(pool.swap(
-            deps,
-            env,
-            offer_asset,
-            return_asset.info.clone(),
-            Uint128::one(),
-        )?)
-    } else {
-        Ok(Response::new())
-    }
-}
-
 pub fn execute_balancing_provide_liquidity(
     deps: DepsMut,
     env: Env,
@@ -243,6 +94,8 @@ pub fn execute_balancing_provide_liquidity(
     recipient: Option<String>,
 ) -> Result<Response, ContractError> {
     println!("execute_balancing_provide_liquidity");
+    println!("info.funds: {:?}", info.funds);
+    println!("assets: {:?}", assets);
     // Get response with message to do TransferFrom on any Cw20s and assert that
     // native tokens have been received already.
     let receive_res = receive_assets(&info, &env, &assets)?;
@@ -258,31 +111,151 @@ pub fn execute_balancing_provide_liquidity(
     // For XYK pools we need to swap some amount of one asset into the other before
     // we provide liquidity. For other types we can just provide liquidity
     // directly.
-    let swap_res = match &pool.pair_type {
-        PairType::Xyk {} => handle_xyk_balancing_provide_liquidity(
-            deps.as_ref(),
-            &env,
-            info,
-            &pool,
-            &mut assets,
-            min_out,
-        )?,
-        PairType::Stable {} => Response::new(),
-        PairType::Custom(t) => match t.as_str() {
-            "concentrated" => Response::new(),
-            "astroport-pair-xyk-sale-tax" => handle_xyk_balancing_provide_liquidity(
+    let is_xyk = match &pool.pair_type {
+        PairType::Xyk {} => true,
+        PairType::Custom(t) if t == "astroport-pair-xyk-sale-tax" => true,
+        _ => false,
+    };
+    let swap_res = if is_xyk {
+        let pool_res = pool.query_pool_info(&deps.querier)?;
+
+        let pool_reserves: [Asset; 2] = [
+            Asset::from(pool_res.assets[0].clone()),
+            Asset::from(pool_res.assets[1].clone()),
+        ];
+        if assets.len() > 2 {
+            return Err(ContractError::MoreThanTwoAssets {});
+        }
+
+        // If only one asset is provided in the AssetList, we need to
+        // create the other asset with an empty amount
+        let assets_slice: [Asset; 2] = [
+            assets
+                .find(&pool_reserves[0].info)
+                .cloned()
+                .unwrap_or_else(|| Asset {
+                    info: pool_reserves[0].info.clone(),
+                    amount: Uint128::zero(),
+                }),
+            assets
+                .find(&pool_reserves[1].info)
+                .cloned()
+                .unwrap_or_else(|| Asset {
+                    info: pool_reserves[1].info.clone(),
+                    amount: Uint128::zero(),
+                }),
+        ];
+
+        // Get fee amount
+        let fee_info = query_fee_info(
+            &deps.querier,
+            ASTROPORT_FACTORY.load(deps.storage)?,
+            pool.pair_type.clone(),
+        )?;
+        let fee = fee_info.total_fee_rate;
+
+        // Get sale tax if applicable
+        let tax_configs: Option<TaxConfigs<Addr>> = match &pool.pair_type {
+            PairType::Custom(t) => match t.as_str() {
+                "astroport-pair-xyk-sale-tax" => {
+                    let config: ConfigResponse = deps
+                        .querier
+                        .query_wasm_smart(&pool.pair_addr, &PairQueryMsg::Config {})?;
+                    let astro_asset_infos: Vec<AstroV3AssetInfo> = pool
+                        .pool_assets
+                        .iter()
+                        .map(|x| match x {
+                            AssetInfo::Cw20(addr) => AstroV3AssetInfo::cw20(addr.clone()),
+                            AssetInfo::Native(denom) => AstroV3AssetInfo::native(denom),
+                        })
+                        .collect();
+                    let sale_tax_params: SaleTaxInitParams = from_json(config.params.unwrap())?;
+                    let tax_configs = sale_tax_params
+                        .tax_configs
+                        .check(deps.api, &astro_asset_infos)?;
+                    Some(tax_configs)
+                }
+                _ => None,
+            },
+            _ => None,
+        };
+
+        println!("tax_configs: {:?}", tax_configs);
+
+        // Calculate amount of tokens to swap
+        let (offer_asset, return_asset) = calc_xyk_balancing_swap(
+            assets_slice,
+            [pool_reserves[0].amount, pool_reserves[1].amount],
+            fee,
+            tax_configs,
+        )?;
+
+        deps.api.debug(&format!("assets: {}", &assets.to_string()));
+        // Update balances for liquidity provision
+        assets.add(&return_asset)?;
+        assets.deduct(&offer_asset)?;
+
+        println!("assets after: {:?}", assets);
+        println!("offer_asset: {:?}", offer_asset);
+        println!("return_asset: {:?}", return_asset);
+
+        deps.api.debug("post deduction");
+
+        // If either of the assets are still zero after the swap, we can't
+        // provide liquidity. This can happen if the amount of tokens to swap
+        // is so small that the returned amount of the other asset would be zero.
+        if pool.pool_assets.iter().any(|x| {
+            assets
+                .find(x)
+                .map_or_else(Uint128::zero, |y| y.amount)
+                .is_zero()
+        }) {
+            println!("pool_assets: {:?}", pool.pool_assets);
+            if min_out.is_zero() {
+                // If min_out is zero, we can just return the received native
+                // assets. We don't need to return any Cw20 assets, because
+                // we did not execute the transferFrom on them. If no native
+                // assets were received, we don't need to return anything.
+                let event =
+                    Event::new("apollo/astroport-liquidity-helper/execute_balancing_provide_liquidity")
+                        .add_attribute("action", "No liquidity provided. Zero amount of asset")
+                        .add_attribute("assets", assets.to_string())
+                        .add_attribute("min_out", min_out);
+                if !info.funds.is_empty() {
+                    let return_msg = CosmosMsg::Bank(BankMsg::Send {
+                        to_address: info.sender.to_string(),
+                        amount: info.funds,
+                    });
+                    return Ok(Response::new().add_message(return_msg).add_event(event));
+                } else {
+                    return Ok(Response::new().add_event(event));
+                }
+            } else {
+                // If min_out is not zero, we need to return an error
+                return Err(ContractError::MinOutNotReceived {
+                    min_out,
+                    received: Uint128::zero(),
+                });
+            }
+        }
+
+        println!("pool_assets 2: {:?}", pool.pool_assets);
+
+        // Create message to swap some of the asset to the other
+        if offer_asset.amount > Uint128::zero() && return_asset.amount > Uint128::zero() {
+            pool.swap(
                 deps.as_ref(),
                 &env,
-                info,
-                &pool,
-                &mut assets,
-                min_out,
-            )?,
-            _ => return Err(ContractError::UnsupportedPairType {}),
-        },
+                offer_asset,
+                return_asset.info.clone(),
+                Uint128::one(),
+            )?
+        } else {
+            Response::new()
+        }
+    } else {
+        Response::new()
     };
-
-    println!("swap_res: {:?}", swap_res);
 
     // For stableswap and concentrated liquidity pools we are allowed to provide
     // liquidity in any ratio, so we simply provide liquidity with all passed
