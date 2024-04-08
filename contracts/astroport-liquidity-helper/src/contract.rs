@@ -214,22 +214,24 @@ pub fn execute_balancing_provide_liquidity(
             if min_out.is_zero() {
                 // If min_out is zero, we can just return the received native
                 // assets. We don't need to return any Cw20 assets, because
-                // we did not execute the transferFrom on them. If no native
-                // assets were received, we don't need to return anything.
-                let event =
-                    Event::new("apollo/astroport-liquidity-helper/execute_balancing_provide_liquidity")
-                        .add_attribute("action", "No liquidity provided. Zero amount of asset")
-                        .add_attribute("assets", assets.to_string())
-                        .add_attribute("min_out", min_out);
-                if !info.funds.is_empty() {
-                    let return_msg = CosmosMsg::Bank(BankMsg::Send {
+                // we did not execute the transferFrom on them.
+                let event = Event::new(
+                    "apollo/astroport-liquidity-helper/execute_balancing_provide_liquidity",
+                )
+                .add_attribute("action", "No liquidity provided. Zero amount of asset")
+                .add_attribute("assets", assets.to_string())
+                .add_attribute("min_out", min_out);
+                println!("event: {:?}", event);
+
+                // Can only return funds if there are some
+                let mut res = Response::new().add_event(event);
+                if &info.funds.len() > &0 {
+                    res = res.add_message(CosmosMsg::Bank(BankMsg::Send {
                         to_address: info.sender.to_string(),
                         amount: info.funds,
-                    });
-                    return Ok(Response::new().add_message(return_msg).add_event(event));
-                } else {
-                    return Ok(Response::new().add_event(event));
+                    }));
                 }
+                return Ok(res);
             } else {
                 // If min_out is not zero, we need to return an error
                 return Err(ContractError::MinOutNotReceived {
