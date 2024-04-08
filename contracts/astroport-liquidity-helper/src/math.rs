@@ -581,7 +581,7 @@ pub mod big_decimal {
         #[test_case(0i128 => 0 ; "zero")]
         #[test_case(BIG_DECIMAL_FRACTIONAL as i128 => BIG_DECIMAL_FRACTIONAL ; "one")]
         #[test_case(100 * BIG_DECIMAL_FRACTIONAL as i128 => 10 * BIG_DECIMAL_FRACTIONAL ; "one hundred")]
-        #[test_case(2 * BIG_DECIMAL_FRACTIONAL as i128 => 1414213562373095145u128 ; "two")]
+        #[test_case(2 * BIG_DECIMAL_FRACTIONAL as i128 => 1414213562373095048u128 ; "two")]
         #[test_case(-(BIG_DECIMAL_FRACTIONAL as i128) => panics "Cannot compute the square root of a negative number." ; "negative one")]
         fn test_bigdecimal_sqrt(val: i128) -> u128 {
             bigint_to_u128(&BigDecimal::new(val.into()).sqrt().atomics()).unwrap()
