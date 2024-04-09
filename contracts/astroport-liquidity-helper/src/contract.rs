@@ -213,7 +213,7 @@ pub fn execute_balancing_provide_liquidity(
 
                 // Can only return funds if there are some
                 let mut res = Response::new().add_event(event);
-                if &info.funds.len() > &0 {
+                if !info.funds.is_empty() {
                     res = res.add_message(CosmosMsg::Bank(BankMsg::Send {
                         to_address: info.sender.to_string(),
                         amount: info.funds,

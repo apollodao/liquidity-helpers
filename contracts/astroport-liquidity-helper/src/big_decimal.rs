@@ -1,4 +1,3 @@
-
 use std::ops::{Add, Div, Mul, Sub};
 
 use cosmwasm_std::{Decimal, Fraction, StdError, StdResult, Uint128};
