@@ -634,7 +634,7 @@ pub mod big_decimal {
 }
 
 /// Calculate how much will be returned from a swap in a constant product pool
-fn constant_product_formula(
+pub fn constant_product_formula(
     offer_reserve: Uint128,
     ask_reserve: Uint128,
     mut offer_amount: Uint128,

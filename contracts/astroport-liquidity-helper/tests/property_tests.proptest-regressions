@@ -1,0 +1,11 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 459e747f8bd2641dc0389b1a238c07d54c130efb23faf718977f83a052d76ad9 # shrinks to asset_amount_1 = 22281570672345703849, asset_amount_2 = 44550554140960439538, reserve_1 = 956324031525386939260, reserve_2 = 130984882130691351230, pair_type = Custom("astroport-pair-xyk-sale-tax")
+cc f465befdad15d07b156015d3e5cf2f7bd4fc68d65b5fe71067283427cf54099c # shrinks to asset_amount_1 = 23311822968903591280, asset_amount_2 = 281630496622788, reserve_1 = 247974637800031845141, reserve_2 = 48536911881584, pair_type = Custom("concentrated")
+cc 3074c8fc53c43aec775d8f8ea63276982f57de4e51f7e978bc9056c378d101e1 # shrinks to asset_amount_1 = 29013235919790427190, asset_amount_2 = 418030717571099, reserve_1 = 774941019066857227539, reserve_2 = 232173153759597, pair_type = Xyk
+cc 6bc772b3d3427b9c28030297765ba3526da21f459a1c20469ed3f7438a8134d8 # shrinks to asset_amount_1 = 9119220474014713168, asset_amount_2 = 497200111535384, reserve_1 = 704328961716367593434, reserve_2 = 483213202773149, pair_type = Custom("astroport-pair-xyk-sale-tax")
+cc 8bfd3d86aa0da21c6bc89f8057e6cb3ed59d92ddd0ffa7b664be473ed8ceb0c8 # shrinks to asset_amount_1 = 861022307144820881686, asset_amount_2 = 2125656468185, reserve_1 = 863629163172052531224, reserve_2 = 97838846769376, pair_type = Xyk

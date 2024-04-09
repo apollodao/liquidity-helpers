@@ -29,6 +29,7 @@ semver            = "1.0.20"
 # Dev dependencies
 cw-it             = "0.3.1"
 test-case         = "3.2.1"
+proptest          = "1.4.0"
 
 [profile.release]
 codegen-units     = 1

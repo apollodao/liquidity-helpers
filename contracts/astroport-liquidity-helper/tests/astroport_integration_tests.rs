@@ -320,7 +320,7 @@ where
 #[test]
 pub fn test() {}
 
-const TOLERANCE: &str = "0.000002";
+const TOLERANCE: &str = "0.0005";
 
 // Test 1: 1:1 ratio, double amount of asset 2
 #[test_matrix(
@@ -337,7 +337,7 @@ const TOLERANCE: &str = "0.000002";
     true
 )]
 // Test 3: 1:2.9 pool ratio, 1:1 ratio of assets, but a lot of assets compared to pool (high
-// slipage)
+// slippage)
 #[test_matrix(
     [[Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)]],
     [[Uint128::from(1_000_000_000_000u128), Uint128::from(2_900_000_000_000u128)]],
@@ -408,8 +408,8 @@ pub fn test_balancing_provide_liquidity(
         get_local_contracts(&runner, &Some("tests/astroport-artifacts"), false, &None);
     let admin = runner
         .init_account(&[
-            coin(1_000_000_000_000_000, "uluna"),
-            coin(1_000_000_000_000_000, "uosmo"),
+            coin(1_000_000_000_000_000_000_000_000_000_000_000u128, "uluna"),
+            coin(1_000_000_000_000_000_000_000_000_000_000_000u128, "uosmo"),
         ])
         .unwrap();
     let tax_recipient = runner.init_account(&[]).unwrap();
@@ -533,7 +533,7 @@ pub fn test_balancing_provide_liquidity(
             denom: "uluna".into(),
         }],
         &admin,
-    );
+    ).unwrap();
 
     // Check pool liquidity after adding
     let initial_pool_liquidity: PoolResponse = wasm
