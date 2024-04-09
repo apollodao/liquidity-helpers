@@ -3,7 +3,7 @@ use std::vec;
 
 use apollo_cw_asset::{Asset, AssetList};
 use cosmwasm_std::{to_json_binary, Addr, Coin, StdError, Uint128};
-use cw_dex::osmosis::OsmosisPool;
+use cw_dex_osmosis::OsmosisPool;
 use cw_it::osmosis_std::types::cosmos::bank::v1beta1::QueryBalanceRequest;
 use cw_it::osmosis_std::types::cosmwasm::wasm::v1::MsgExecuteContractResponse;
 use cw_it::osmosis_test_tube::{
