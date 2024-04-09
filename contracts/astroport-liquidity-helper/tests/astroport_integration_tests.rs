@@ -326,20 +326,13 @@ const TOLERANCE: &str = "0.0005";
     [PairType::Stable {  }, PairType::Custom("concentrated".to_string())],
     true
 )]
-// Test 8: Xyk 0:0 pool ratio, should fail with correct error
+// Test 8: Xyk 0:0 pool ratio, should fail
 #[test_matrix(
     [[Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)]],
     [[Uint128::from(0u128), Uint128::from(0u128)]],
-    [PairType::Xyk {}, PairType::Custom("astroport-pair-xyk-sale-tax".to_string())],
+    [PairType::Xyk {}, PairType::Custom("astroport-pair-xyk-sale-tax".to_string()), PairType::Stable {  }, PairType::Custom("concentrated".to_string())],
     true
-    => panics "No liquidity in pool";
-)]
-// Test 8: empty pool. Should work for stable and concentrated pools, but not for xyk pools.
-#[test_matrix(
-    [[Uint128::from(1_000_000_000_000u128), Uint128::from(1_000_000_000_000u128)]],
-    [[Uint128::from(0u128), Uint128::from(0u128)]],
-    [PairType::Stable {  }, PairType::Custom("concentrated".to_string())],
-    true
+    => panics
 )]
 /// Tests the BalancingProvideLiquidity message
 pub fn test_balancing_provide_liquidity(
@@ -467,15 +460,17 @@ pub fn test_balancing_provide_liquidity(
         auto_stake: Some(false),
         receiver: None,
     };
-    let _res = wasm.execute(
-        &uluna_astro_pair_addr,
-        &provide_liq_msg,
-        &[Coin {
+    let coins = if !reserves[0].is_zero() {
+        vec![Coin {
             amount: reserves[0],
             denom: "uluna".into(),
-        }],
-        &admin,
-    ).unwrap();
+        }]
+    } else {
+        vec![]
+    };
+    let _res = wasm
+        .execute(&uluna_astro_pair_addr, &provide_liq_msg, &coins, &admin)
+        .unwrap();
 
     // Check pool liquidity after adding
     let initial_pool_liquidity: PoolResponse = wasm
