@@ -99,7 +99,7 @@ pub fn calc_xyk_balancing_swap(
         * (ask_balance + ask_reserve - ask_reserve * tax_rate + ask_reserve * fee_rate * tax_rate);
     let x = (numerator + discriminant.sqrt()) / denominator;
 
-    // Divide by precision to get final result and convert to Uint128
+    // Convert final result to Uint128
     let offer_amount: Uint128 = bigint_to_u128(&x.floor())?.into();
     let offer_asset = Asset {
         amount: offer_amount,
