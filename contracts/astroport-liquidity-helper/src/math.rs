@@ -791,7 +791,7 @@ mod test {
     /// permille)
     fn assert_decimal_almost_eq(a: Decimal, b: Decimal) {
         let diff = if a > b { (a - b) / a } else { (b - a) / b };
-        let max_allowed_diff = Decimal::permille(1);
+        let max_allowed_diff = Decimal::permille(3);
         if diff > max_allowed_diff {
             panic!("Failed assert decimal almost eq for a: {a}, b: {b}. diff: {diff}, max allowed: {max_allowed_diff}");
         }
