@@ -5,9 +5,12 @@ use astroport_liquidity_helper::msg::InstantiateMsg;
 use cosmwasm_std::{assert_approx_eq, coin, to_json_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{AllowanceResponse, BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_dex_astroport::astroport::asset::{Asset as AstroAsset, AssetInfo as AstroAssetInfo};
-use cw_dex_astroport::astroport::factory::{ExecuteMsg as FactoryExecuteMsg, FeeInfoResponse, PairType};
+use cw_dex_astroport::astroport::factory::{
+    ExecuteMsg as FactoryExecuteMsg, FeeInfoResponse, PairType,
+};
 use cw_dex_astroport::astroport::pair::{
-    ExecuteMsg as PairExecuteMsg, PoolResponse, QueryMsg as PairQueryMsg, SimulationResponse, StablePoolParams
+    ExecuteMsg as PairExecuteMsg, PoolResponse, QueryMsg as PairQueryMsg, SimulationResponse,
+    StablePoolParams,
 };
 use cw_dex_astroport::astroport::pair_concentrated::ConcentratedPoolParams;
 use cw_dex_astroport::{astroport, AstroportPool};
@@ -18,15 +21,20 @@ use cw_it::astroport::utils::{
 };
 use cw_it::cw_multi_test::ContractWrapper;
 
+use cw_it::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
 use cw_it::multi_test::MultiTestRunner;
-use cw_it::osmosis_test_tube::osmosis_std::types::cosmos::bank::v1beta1::QueryBalanceRequest;
+use cw_it::osmosis_std::types::cosmos::bank::v1beta1::QueryBalanceRequest;
+use cw_it::test_tube::{Account, Bank, Module, Runner, SigningAccount, Wasm};
 use cw_it::traits::CwItRunner;
-use cw_it::{Artifact, ContractType, OwnedTestRunner, TestRunner};
+use cw_it::{ContractType, OwnedTestRunner, TestRunner};
 use liquidity_helper::LiquidityHelper;
 use test_case::test_matrix;
 
-use cw_it::osmosis_test_tube::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
-use cw_it::osmosis_test_tube::{Account, Bank, Module, Runner, SigningAccount, Wasm};
+#[cfg(feature = "osmosis-test-tube")]
+use cw_it::osmosis_test_tube::OsmosisTestApp;
+
+#[cfg(feature = "osmosis-test-tube")]
+use cw_it::Artifact;
 
 use std::str::FromStr;
 
@@ -35,9 +43,7 @@ pub const ASTROPORT_LIQUIDITY_HELPER_WASM_FILE: &str =
 
 pub fn get_test_runner<'a>() -> OwnedTestRunner<'a> {
     match option_env!("TEST_RUNNER").unwrap_or("multi-test") {
-        "multi-test" => {
-            OwnedTestRunner::MultiTest(MultiTestRunner::new("osmo"))
-        }
+        "multi-test" => OwnedTestRunner::MultiTest(MultiTestRunner::new("osmo")),
         #[cfg(feature = "osmosis-test-tube")]
         "osmosis-test-app" => OwnedTestRunner::OsmosisTestApp(OsmosisTestApp::new()),
         _ => panic!("Unsupported test runner type"),
@@ -67,6 +73,7 @@ where
 
     // Upload astroport pair xyk sale tax contract
     let sale_tax_contract = match app {
+        #[cfg(feature = "osmosis-test-tube")]
         TestRunner::OsmosisTestApp(_) => ContractType::Artifact(Artifact::Local(
             ("tests/astroport-artifacts/astroport_pair_xyk_sale_tax.wasm").to_string(),
         )),
@@ -104,6 +111,7 @@ where
 
     // Load compiled wasm bytecode or multi-test contract depending on the runner
     let astroport_liquidity_helper_wasm_byte_code = match app {
+        #[cfg(feature = "osmosis-test-tube")]
         TestRunner::OsmosisTestApp(_) => ContractType::Artifact(Artifact::Local(
             ASTROPORT_LIQUIDITY_HELPER_WASM_FILE.to_string(),
         )),
@@ -208,15 +216,17 @@ pub fn test_calc_xyk_balancing_swap() {
         auto_stake: Some(false),
         receiver: None,
     };
-    let _res = wasm.execute(
-        &uluna_astro_pair_addr,
-        &provide_liq_msg,
-        &[Coin {
-            amount: Uint128::from(1_000_000_000_000u128),
-            denom: "uluna".into(),
-        }],
-        &admin,
-    ).unwrap();
+    let _res = wasm
+        .execute(
+            &uluna_astro_pair_addr,
+            &provide_liq_msg,
+            &[Coin {
+                amount: Uint128::from(1_000_000_000_000u128),
+                denom: "uluna".into(),
+            }],
+            &admin,
+        )
+        .unwrap();
 
     // Query fee info
     let res: FeeInfoResponse = wasm
@@ -246,8 +256,7 @@ pub fn test_calc_xyk_balancing_swap() {
     ];
 
     let (offer_asset, return_asset) =
-        calc_xyk_balancing_swap(assets, reserves,
-total_fee_rate, None).unwrap();
+        calc_xyk_balancing_swap(assets, reserves, total_fee_rate, None).unwrap();
 
     // Simulate swap
     let simulation_result: SimulationResponse = wasm

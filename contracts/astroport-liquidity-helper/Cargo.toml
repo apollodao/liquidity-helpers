@@ -25,6 +25,7 @@ crate-type = ["cdylib", "rlib"]
 # backtraces = ["cosmwasm-std/backtraces"]
 # use library feature to disable all instantiate/execute/query exports
 library = []
+osmosis-test-tube = ["cw-it/osmosis-test-tube"]
 
 [package.metadata.scripts]
 optimize = """docker run --rm -v "$(pwd)":/code \
@@ -50,7 +51,7 @@ semver            = { workspace = true }
 astroport_v3      = { package = "astroport", version = "3.11.1" }
 
 [dev-dependencies]
-cw-it                       = { workspace = true, features = ["astroport", "osmosis-test-tube", "multi-test", "astroport-multi-test"] }
+cw-it                       = { workspace = true, features = ["astroport", "multi-test", "astroport-multi-test"] }
 test-case                   = { workspace = true }
 proptest                    = { workspace = true }
 astroport-pair-xyk-sale-tax = { git = "https://github.com/astroport-fi/astroport-core", branch = "main" }
