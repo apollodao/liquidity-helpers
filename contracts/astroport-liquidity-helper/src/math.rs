@@ -715,47 +715,42 @@ pub fn calc_xyk_balancing_swap(
                 .unwrap_or(Decimal::zero())
         })
         .unwrap_or(Decimal::zero());
-    let _tax_rate: &BigDecimal = &tax_rate_decimal.into();
+    let tax_rate: &BigDecimal = &tax_rate_decimal.into();
 
     println!("pre calcs");
 
     // Original formula:
-    let two = &BigDecimal::from(2u128);
-    let a = ask_reserve + ask_balance;
-    let b = two * offer_reserve * (ask_reserve + ask_balance)
-        - ((offer_reserve + offer_balance) * ask_reserve * fee_rate);
-    let c = offer_reserve * (offer_reserve * ask_balance - offer_balance * ask_reserve);
-    let discriminant = &b * &b - (two * two * &a * &c);
-    //  We know that for this equation, there is only one positive real solution
-    let x = (discriminant.sqrt() - b) / (two * a);
+    // let two = &BigDecimal::from(2u128);
+    // let a = ask_reserve + ask_balance;
+    // let b = two * offer_reserve * (ask_reserve + ask_balance)
+    //     - ((offer_reserve + offer_balance) * ask_reserve * fee_rate);
+    // let c = offer_reserve * (offer_reserve * ask_balance - offer_balance *
+    // ask_reserve); let discriminant = &b * &b - (two * two * &a * &c);
+    // //  We know that for this equation, there is only one positive real solution
+    // let x = (discriminant.sqrt() - b) / (two * a);
 
     // New formula including tax:
     // Solve equation to find amount to swap
-    // let two = &BigDecimal::from(2u128);
-    // let four = two * two;
-    // let numerator = offer_reserve * ask_reserve * (fee_rate - fee_rate *
-    // tax_rate)
-    //     + (offer_balance + offer_reserve) * ask_reserve * fee_rate
-    //     - two * offer_reserve * (ask_balance + ask_reserve);
-    // println!("numerator: {:?}", numerator);
-    // let discriminant = (two * offer_reserve * ask_balance - offer_balance *
-    // ask_reserve * fee_rate
-    //     + two * offer_reserve * ask_reserve * (BigDecimal::one() - fee_rate)
-    //     + offer_reserve * ask_reserve * fee_rate * tax_rate)
-    //     .pow(2)
-    //     - four
-    //         * (ask_balance + ask_reserve + ask_reserve * (fee_rate * tax_rate -
-    //           tax_rate))
-    //         * (offer_reserve.pow(2) * ask_balance - offer_balance * offer_reserve
-    //           * ask_reserve);
-    // println!("discriminant: {discriminant:?}");
-    // let denominator = two
-    //     * (ask_balance + ask_reserve - ask_reserve * tax_rate + ask_reserve *
-    //       fee_rate * tax_rate);
+    let two = &BigDecimal::from(2u128);
+    let four = two * two;
+    let numerator = offer_reserve * ask_reserve * (fee_rate - fee_rate * tax_rate)
+        + (offer_balance + offer_reserve) * ask_reserve * fee_rate
+        - two * offer_reserve * (ask_balance + ask_reserve);
+    println!("numerator: {:?}", numerator);
+    let discriminant = (two * offer_reserve * ask_balance - offer_balance * ask_reserve * fee_rate
+        + two * offer_reserve * ask_reserve * (BigDecimal::one() - fee_rate)
+        + offer_reserve * ask_reserve * fee_rate * tax_rate)
+        .pow(2)
+        - four
+            * (ask_balance + ask_reserve + ask_reserve * (fee_rate * tax_rate - tax_rate))
+            * (offer_reserve.pow(2) * ask_balance - offer_balance * offer_reserve * ask_reserve);
+    println!("discriminant: {discriminant:?}");
+    let denominator = two
+        * (ask_balance + ask_reserve - ask_reserve * tax_rate + ask_reserve * fee_rate * tax_rate);
 
-    // println!("denominator: {denominator:?}");
+    println!("denominator: {denominator:?}");
 
-    // let x = (numerator + discriminant.sqrt()) / denominator;
+    let x = (numerator + discriminant.sqrt()) / denominator;
 
     println!("x: {x:?}");
 
