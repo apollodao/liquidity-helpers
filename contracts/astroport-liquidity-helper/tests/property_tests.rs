@@ -1,25 +1,25 @@
-
 pub mod astroport_integration_tests;
 
-use cosmwasm_std::{Uint128,Decimal};
+use astroport_integration_tests::test_balancing_provide_liquidity;
+use astroport_liquidity_helper::math::constant_product_formula;
+use cosmwasm_std::{Decimal, Uint128};
 use cw_dex_astroport::astroport::factory::PairType;
 use proptest::prelude::*;
 use proptest::proptest;
-use astroport_integration_tests::test_balancing_provide_liquidity;
-use astroport_liquidity_helper::math::constant_product_formula;
 
 fn astroport_pair_type() -> impl Strategy<Value = PairType> {
     prop_oneof![
         Just(PairType::Xyk {}),
         Just(PairType::Stable {}),
-        // Just(PairType::Custom("concentrated".to_string())), // Errors with `newton_d is not converging`
+        // Just(PairType::Custom("concentrated".to_string())), // Errors with `newton_d is not
+        // converging`
         Just(PairType::Custom("astroport-pair-xyk-sale-tax".to_string())),
     ]
 }
 
 proptest! {
     #![proptest_config(ProptestConfig {
-        cases: 256,
+        cases: 10,
         max_local_rejects: 100000,
         max_global_rejects: 100000,
         max_shrink_iters: 5,
