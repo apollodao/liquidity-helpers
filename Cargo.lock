@@ -123,7 +123,7 @@ version = "3.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c001a7f97db88ffe6fc6cca97bbdbfe926e55599184921ff7e72cd47559440de"
 dependencies = [
- "astroport-circular-buffer 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "astroport-circular-buffer 0.1.0",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-asset",
@@ -137,18 +137,17 @@ dependencies = [
 
 [[package]]
 name = "astroport"
-version = "3.12.1"
-source = "git+https://github.com/astroport-fi/astroport-core?branch=main#148930eaedf3cacf0c31844045891835c0b29a95"
+version = "4.0.0"
+source = "git+https://github.com/astroport-fi/astroport-core?branch=main#5bff86a0229c7bd96e9f719d0c5907b9b8c3762d"
 dependencies = [
- "astroport-circular-buffer 0.1.0 (git+https://github.com/astroport-fi/astroport-core?branch=main)",
+ "astroport-circular-buffer 0.2.0",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-asset",
- "cw-storage-plus 0.15.1",
+ "cw-storage-plus 1.2.0",
  "cw-utils 1.0.3",
- "cw20 0.15.1",
- "cw3",
- "itertools 0.10.5",
+ "cw20 1.1.2",
+ "itertools 0.12.1",
  "uint",
 ]
 
@@ -166,12 +165,12 @@ dependencies = [
 
 [[package]]
 name = "astroport-circular-buffer"
-version = "0.1.0"
-source = "git+https://github.com/astroport-fi/astroport-core?branch=main#148930eaedf3cacf0c31844045891835c0b29a95"
+version = "0.2.0"
+source = "git+https://github.com/astroport-fi/astroport-core?branch=main#5bff86a0229c7bd96e9f719d0c5907b9b8c3762d"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
- "cw-storage-plus 0.15.1",
+ "cw-storage-plus 1.2.0",
  "thiserror",
 ]
 
@@ -241,7 +240,7 @@ dependencies = [
 
 [[package]]
 name = "astroport-liquidity-helper"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "apollo-cw-asset",
  "apollo-utils",
@@ -331,18 +330,17 @@ dependencies = [
 
 [[package]]
 name = "astroport-pair"
-version = "1.5.0"
-source = "git+https://github.com/astroport-fi/astroport-core?branch=main#148930eaedf3cacf0c31844045891835c0b29a95"
+version = "1.5.1"
+source = "git+https://github.com/astroport-fi/astroport-core?branch=main#5bff86a0229c7bd96e9f719d0c5907b9b8c3762d"
 dependencies = [
- "astroport 3.12.1",
+ "astroport 4.0.0",
  "cosmwasm-schema",
  "cosmwasm-std",
- "cw-storage-plus 0.15.1",
+ "cw-storage-plus 1.2.0",
  "cw-utils 1.0.3",
- "cw2 0.15.1",
- "cw20 0.15.1",
+ "cw2 1.1.2",
+ "cw20 1.1.2",
  "integer-sqrt",
- "protobuf",
  "thiserror",
 ]
 
@@ -384,18 +382,17 @@ dependencies = [
 [[package]]
 name = "astroport-pair-xyk-sale-tax"
 version = "1.6.0"
-source = "git+https://github.com/astroport-fi/astroport-core?branch=main#148930eaedf3cacf0c31844045891835c0b29a95"
+source = "git+https://github.com/astroport-fi/astroport-core?branch=main#5bff86a0229c7bd96e9f719d0c5907b9b8c3762d"
 dependencies = [
- "astroport 3.12.1",
- "astroport-pair 1.5.0",
+ "astroport 4.0.0",
+ "astroport-pair 1.5.1",
  "cosmwasm-schema",
  "cosmwasm-std",
- "cw-storage-plus 0.15.1",
+ "cw-storage-plus 1.2.0",
  "cw-utils 1.0.3",
- "cw2 0.15.1",
- "cw20 0.15.1",
+ "cw2 1.1.2",
+ "cw20 1.1.2",
  "integer-sqrt",
- "protobuf",
  "thiserror",
 ]
 
@@ -1931,7 +1928,7 @@ checksum = "01cda141df6706de531b6c46c3a33ecca755538219bd484262fa09410c13539c"
 
 [[package]]
 name = "liquidity-helper"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "apollo-cw-asset",
  "apollo-utils",
@@ -2079,7 +2076,7 @@ dependencies = [
 
 [[package]]
 name = "osmosis-liquidity-helper"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "apollo-cw-asset",
  "cosmwasm-schema",
