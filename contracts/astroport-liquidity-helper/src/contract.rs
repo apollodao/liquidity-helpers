@@ -111,7 +111,9 @@ pub fn execute_balancing_provide_liquidity(
     let is_xyk = match &pool.pair_type {
         PairType::Xyk {} => true,
         PairType::Custom(t) if t == "astroport-pair-xyk-sale-tax" => true,
-        _ => false,
+        PairType::Stable {} => false,
+        PairType::Custom(t) if t == "concentrated" => false,
+        _ => return Err(ContractError::UnsupportedPairType {}),
     };
     let swap_res = if is_xyk {
         let pool_res = pool.query_pool_info(&deps.querier)?;
