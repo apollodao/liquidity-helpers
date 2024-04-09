@@ -554,7 +554,6 @@ pub mod big_decimal {
             let a = BigDecimal::new(a.into());
             let b = BigDecimal::new(b.into());
             let expected = BigDecimal::new(expected.into());
-            println!("{:?}, {:?}", &a * &b, expected);
             assert_eq!(&a * &b, expected);
             assert_eq!(&a * b.clone(), expected);
             assert_eq!(a.clone() * &b, expected);
@@ -641,26 +640,17 @@ pub fn constant_product_formula(
     fee: Decimal,
     tax_rate: Decimal,
 ) -> StdResult<Uint128> {
-    println!("constant_product_formula");
-    println!(
-        "offer_reserve: {}, ask_reserve: {}, offer_amount: {offer_amount}, fee: {fee}",
-        offer_reserve, ask_reserve
-    );
     if !tax_rate.is_zero() {
         let sale_tax = offer_amount * tax_rate;
         offer_amount = offer_amount.checked_sub(sale_tax)?;
     }
-    println!("offer_amount after tax: {offer_amount}");
 
     let cp = offer_reserve.full_mul(ask_reserve);
     let return_amount: Uint256 = (Decimal256::from_ratio(ask_reserve, 1u8)
         - Decimal256::from_ratio(cp, offer_reserve + offer_amount))
         * Uint256::from(1u8);
-    println!("return_amount: {return_amount}");
     let commission_amount: Uint256 = return_amount * Decimal256::from(fee);
-    println!("commission_amount: {commission_amount}");
     let return_amount: Uint256 = return_amount - commission_amount;
-    println!("return_amount after tax: {return_amount}");
     Ok(return_amount.try_into()?)
 }
 
@@ -677,7 +667,6 @@ pub fn calc_xyk_balancing_swap(
     fee: Decimal,
     tax_configs: Option<TaxConfigsChecked>,
 ) -> StdResult<(Asset, Asset)> {
-    println!("calc_xyk_balancing_swap");
     // Make sure there is liquidity in the pool
     if reserves[0].is_zero() || reserves[1].is_zero() {
         return Err(StdError::generic_err("No liquidity in pool"));
@@ -717,18 +706,6 @@ pub fn calc_xyk_balancing_swap(
         .unwrap_or(Decimal::zero());
     let tax_rate: &BigDecimal = &tax_rate_decimal.into();
 
-    println!("pre calcs");
-
-    // Original formula:
-    // let two = &BigDecimal::from(2u128);
-    // let a = ask_reserve + ask_balance;
-    // let b = two * offer_reserve * (ask_reserve + ask_balance)
-    //     - ((offer_reserve + offer_balance) * ask_reserve * fee_rate);
-    // let c = offer_reserve * (offer_reserve * ask_balance - offer_balance *
-    // ask_reserve); let discriminant = &b * &b - (two * two * &a * &c);
-    // //  We know that for this equation, there is only one positive real solution
-    // let x = (discriminant.sqrt() - b) / (two * a);
-
     // New formula including tax:
     // Solve equation to find amount to swap
     let two = &BigDecimal::from(2u128);
@@ -736,7 +713,6 @@ pub fn calc_xyk_balancing_swap(
     let numerator = offer_reserve * ask_reserve * (fee_rate - fee_rate * tax_rate)
         + (offer_balance + offer_reserve) * ask_reserve * fee_rate
         - two * offer_reserve * (ask_balance + ask_reserve);
-    println!("numerator: {:?}", numerator);
     let discriminant = (two * offer_reserve * ask_balance - offer_balance * ask_reserve * fee_rate
         + two * offer_reserve * ask_reserve * (BigDecimal::one() - fee_rate)
         + offer_reserve * ask_reserve * fee_rate * tax_rate)
@@ -744,15 +720,9 @@ pub fn calc_xyk_balancing_swap(
         - four
             * (ask_balance + ask_reserve + ask_reserve * (fee_rate * tax_rate - tax_rate))
             * (offer_reserve.pow(2) * ask_balance - offer_balance * offer_reserve * ask_reserve);
-    println!("discriminant: {discriminant:?}");
     let denominator = two
         * (ask_balance + ask_reserve - ask_reserve * tax_rate + ask_reserve * fee_rate * tax_rate);
-
-    println!("denominator: {denominator:?}");
-
     let x = (numerator + discriminant.sqrt()) / denominator;
-
-    println!("x: {x:?}");
 
     // Divide by precision to get final result and convert to Uint128
     let offer_amount: Uint128 = bigint_to_u128(&x.floor())?.into();
@@ -773,8 +743,6 @@ pub fn calc_xyk_balancing_swap(
         amount: return_amount,
         info: assets[ask_idx].info.clone(),
     };
-
-    println!("offer_asset: {offer_asset}, return_asset: {return_asset}");
 
     Ok((offer_asset, return_asset))
 }
@@ -811,9 +779,6 @@ mod test {
             Decimal::from_ratio(ask_balance + return_amount, offer_balance - offer_amount);
         let reserve_ratio_after_swap =
             Decimal::from_ratio(ask_reserve - return_amount, offer_reserve + offer_amount);
-        println!(
-            "asset_ratio_after_swap: {asset_ratio_after_swap}, reserve_ratio_after_swap: {reserve_ratio_after_swap}"
-        );
         assert_decimal_almost_eq(asset_ratio_after_swap, reserve_ratio_after_swap);
     }
 
@@ -906,14 +871,9 @@ mod test {
         // Same fee for all test cases
         let fee = Decimal::permille(3);
 
-        println!("Assets: {assets:?}");
-        println!("Reserves: {reserves:?}");
-
         // Calculate swap
         let (swap_asset, return_asset) =
             calc_xyk_balancing_swap(assets, reserves, fee, None).unwrap();
-
-        println!("Swap: {swap_asset:?}, Return: {return_asset:?}");
 
         // If ratios are already almost the same, no swap should happen
         if !should_swap {
@@ -938,6 +898,5 @@ mod test {
             swap_asset.amount,
             return_asset.amount,
         );
-        println!("------------------------------------");
     }
 }

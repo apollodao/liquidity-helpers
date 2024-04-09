@@ -93,9 +93,6 @@ pub fn execute_balancing_provide_liquidity(
     pool: AstroportPool,
     recipient: Option<String>,
 ) -> Result<Response, ContractError> {
-    println!("execute_balancing_provide_liquidity");
-    println!("info.funds: {:?}", info.funds);
-    println!("assets: {:?}", assets);
     // Get response with message to do TransferFrom on any Cw20s and assert that
     // native tokens have been received already.
     let receive_res = receive_assets(&info, &env, &assets)?;
@@ -180,8 +177,6 @@ pub fn execute_balancing_provide_liquidity(
             _ => None,
         };
 
-        println!("tax_configs: {:?}", tax_configs);
-
         // Calculate amount of tokens to swap
         let (offer_asset, return_asset) = calc_xyk_balancing_swap(
             assets_slice,
@@ -190,16 +185,9 @@ pub fn execute_balancing_provide_liquidity(
             tax_configs,
         )?;
 
-        deps.api.debug(&format!("assets: {}", &assets.to_string()));
         // Update balances for liquidity provision
         assets.add(&return_asset)?;
         assets.deduct(&offer_asset)?;
-
-        println!("assets after: {:?}", assets);
-        println!("offer_asset: {:?}", offer_asset);
-        println!("return_asset: {:?}", return_asset);
-
-        deps.api.debug("post deduction");
 
         // If either of the assets are still zero after the swap, we can't
         // provide liquidity. This can happen if the amount of tokens to swap
@@ -210,7 +198,6 @@ pub fn execute_balancing_provide_liquidity(
                 .map_or_else(Uint128::zero, |y| y.amount)
                 .is_zero()
         }) {
-            println!("pool_assets: {:?}", pool.pool_assets);
             if min_out.is_zero() {
                 // If min_out is zero, we can just return the received native
                 // assets. We don't need to return any Cw20 assets, because
@@ -221,7 +208,6 @@ pub fn execute_balancing_provide_liquidity(
                 .add_attribute("action", "No liquidity provided. Zero amount of asset")
                 .add_attribute("assets", assets.to_string())
                 .add_attribute("min_out", min_out);
-                println!("event: {:?}", event);
 
                 // Can only return funds if there are some
                 let mut res = Response::new().add_event(event);
@@ -240,8 +226,6 @@ pub fn execute_balancing_provide_liquidity(
                 });
             }
         }
-
-        println!("pool_assets 2: {:?}", pool.pool_assets);
 
         // Create message to swap some of the asset to the other
         if offer_asset.amount > Uint128::zero() && return_asset.amount > Uint128::zero() {
@@ -264,14 +248,6 @@ pub fn execute_balancing_provide_liquidity(
     // assets.
     let provide_liquidity_res =
         pool.provide_liquidity(deps.as_ref(), &env, assets.clone(), min_out)?;
-
-    println!("assets: {:?}", assets);
-    println!("pool assets: {:?}", pool.pool_assets);
-    println!(
-        "real pool assets: {:?}",
-        pool.query_pool_info(&deps.querier)?.assets
-    );
-    println!("provide_liquidity_res: {:?}", provide_liquidity_res);
 
     // Callback to return LP tokens
     let callback_msg = CallbackMsg::ReturnLpTokens {

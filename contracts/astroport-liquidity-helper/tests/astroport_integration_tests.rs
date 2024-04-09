@@ -467,10 +467,6 @@ pub fn test_balancing_provide_liquidity(
         auto_stake: Some(false),
         receiver: None,
     };
-    println!(
-        "initial reserves {} uluna, {} astro",
-        reserves[0], reserves[1]
-    );
     let _res = wasm.execute(
         &uluna_astro_pair_addr,
         &provide_liq_msg,
@@ -515,7 +511,6 @@ pub fn test_balancing_provide_liquidity(
             None,
         )
         .unwrap();
-    println!("msgs: {msgs:?}");
     let _res = runner
         .execute_cosmos_msgs::<MsgExecuteContractResponse>(&msgs, &admin)
         .unwrap();
