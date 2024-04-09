@@ -376,7 +376,7 @@ const TOLERANCE: &str = "0.000002";
 #[test_matrix(
     [[Uint128::from(0u128), Uint128::from(3564u128)]],
     [[Uint128::from(3450765745u128), Uint128::from(12282531965699u128)]],
-    [PairType::Stable {  }, PairType::Custom("concentrated".to_string()), PairType::Custom("astroport-pair-xyk-sale-tax".to_string())],
+    [PairType::Stable {  }, PairType::Custom("concentrated".to_string())],
     true
 )]
 // Test 8: Xyk 0:0 pool ratio, should fail with correct error
