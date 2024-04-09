@@ -320,7 +320,7 @@ where
 #[test]
 pub fn test() {}
 
-const TOLERANCE: &str = "0.0005";
+const TOLERANCE: &str = "0.000002";
 
 // Test 1: 1:1 ratio, double amount of asset 2
 #[test_matrix(
@@ -412,6 +412,7 @@ pub fn test_balancing_provide_liquidity(
             coin(1_000_000_000_000_000, "uosmo"),
         ])
         .unwrap();
+    let tax_recipient = runner.init_account(&[]).unwrap();
     let astroport_contracts = &setup_astroport(&runner, astroport_contracts, &admin);
 
     let wasm = Wasm::new(&runner);
@@ -446,7 +447,7 @@ pub fn test_balancing_provide_liquidity(
                         "uluna",
                         TaxConfig {
                             tax_rate: Decimal::percent(3),
-                            tax_recipient: admin.address(),
+                            tax_recipient: tax_recipient.address(),
                         },
                     )]
                     .into(),
@@ -583,16 +584,18 @@ pub fn test_balancing_provide_liquidity(
     let uluna_balance_after = query_token_balance(&runner, &admin.address(), "uluna");
     let astro_balance_after = query_cw20_balance(&runner, admin.address(), &astro_token);
     if should_provide {
+        let uluna_tax_amount = query_token_balance(&runner, &tax_recipient.address(), "uluna");
+        let astro_tax_amount = query_cw20_balance(&runner, tax_recipient.address(), &astro_token);
         // Astroport liquidity manager rounds down the amount of tokens sent to the pool
         // by one unit.
         assert_approx_eq!(
             pool_liquidity[0].amount,
-            reserves[0] + asset_amounts[0],
+            reserves[0] + asset_amounts[0] - uluna_tax_amount,
             TOLERANCE
         );
         assert_approx_eq!(
             pool_liquidity[1].amount,
-            reserves[1] + asset_amounts[1],
+            reserves[1] + asset_amounts[1] - astro_tax_amount,
             TOLERANCE
         );
 
