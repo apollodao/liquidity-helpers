@@ -6,9 +6,10 @@
 //! ratio of assets are the same as the pools reserves after the swap.
 
 pub mod contract;
-mod error;
+pub mod error;
 pub mod math;
 pub mod msg;
 pub mod state;
+pub mod big_decimal;
 
 pub use crate::error::ContractError;
