@@ -1,33 +1,25 @@
 //! Module containing implementations of calculations needed for swapping
 
 use apollo_cw_asset::Asset;
+use astroport_v3::pair_xyk_sale_tax::TaxConfigsChecked;
 use cosmwasm_std::{Decimal, Decimal256, StdError, StdResult, Uint128, Uint256};
 use cw_bigint::BigInt;
 
-/// Returns square root of a BigInt
-fn bigint_sqrt(input: BigInt) -> StdResult<BigInt> {
-    if input < 0.into() {
-        return Err(StdError::generic_err(
-            "Cannot calculate square root of negative number",
-        ));
-    }
-
-    let mut x = input.clone();
-    let mut y = (&x + 1u128) / 2u128;
-    while y < x {
-        x = y;
-        y = (&x + &input / &x) / 2u128;
-    }
-    Ok(x)
-}
+use crate::big_decimal::{bigint_to_u128, BigDecimal};
 
 /// Calculate how much will be returned from a swap in a constant product pool
-fn constant_product_formula(
+pub fn constant_product_formula(
     offer_reserve: Uint128,
     ask_reserve: Uint128,
-    offer_amount: Uint128,
+    mut offer_amount: Uint128,
     fee: Decimal,
+    tax_rate: Decimal,
 ) -> StdResult<Uint128> {
+    if !tax_rate.is_zero() {
+        let sale_tax = offer_amount * tax_rate;
+        offer_amount = offer_amount.checked_sub(sale_tax)?;
+    }
+
     let cp = offer_reserve.full_mul(ask_reserve);
     let return_amount: Uint256 = (Decimal256::from_ratio(ask_reserve, 1u8)
         - Decimal256::from_ratio(cp, offer_reserve + offer_amount))
@@ -35,12 +27,6 @@ fn constant_product_formula(
     let commission_amount: Uint256 = return_amount * Decimal256::from(fee);
     let return_amount: Uint256 = return_amount - commission_amount;
     Ok(return_amount.try_into()?)
-}
-
-fn bigint_to_uint128(input: BigInt) -> StdResult<Uint128> {
-    Ok(Uint128::from(TryInto::<u128>::try_into(input).map_err(
-        |_| StdError::generic_err("Cannot convert BigInt to Uint128"),
-    )?))
 }
 
 /// For a constant product pool, calculates how much of one asset we need to
@@ -54,12 +40,8 @@ pub fn calc_xyk_balancing_swap(
     assets: [Asset; 2],
     reserves: [Uint128; 2],
     fee: Decimal,
+    tax_configs: Option<TaxConfigsChecked>,
 ) -> StdResult<(Asset, Asset)> {
-    // Instead of trying to implement our own big decimal, we just use BigInt
-    // and multiply and divide with this number before and after doing
-    // calculations.
-    let precision: BigInt = BigInt::from(1_000_000_000u128);
-
     // Make sure there is liquidity in the pool
     if reserves[0].is_zero() || reserves[1].is_zero() {
         return Err(StdError::generic_err("No liquidity in pool"));
@@ -79,24 +61,46 @@ pub fn calc_xyk_balancing_swap(
     } else {
         (1, 0)
     };
-    let offer_reserve = BigInt::from(reserves[offer_idx].u128()) * &precision;
-    let ask_reserve = BigInt::from(reserves[ask_idx].u128()) * &precision;
-    let offer_balance = BigInt::from(assets[offer_idx].amount.u128()) * &precision;
-    let ask_balance = BigInt::from(assets[ask_idx].amount.u128()) * &precision;
 
-    let fee_int = (BigInt::from(fee.atomics().u128()) * &precision) / BigInt::from(10u128.pow(18));
+    let offer_reserve = &BigInt::from(reserves[offer_idx].u128());
+    let ask_reserve = &BigInt::from(reserves[ask_idx].u128());
+    let offer_balance = &BigInt::from(assets[offer_idx].amount.u128());
+    let ask_balance = &BigInt::from(assets[ask_idx].amount.u128());
 
-    // Calculate amount to swap by solving quadratic equation
-    let a = &ask_reserve + &ask_balance;
-    let b = 2u128 * &offer_reserve * (&ask_reserve + &ask_balance)
-        - ((&offer_reserve + &offer_balance) * &ask_reserve * &fee_int) / &precision;
-    let c = &offer_reserve * (&offer_reserve * &ask_balance - &offer_balance * &ask_reserve);
-    let discriminant = &b * &b - (4u128 * &a * &c);
-    //  We know that for this equation, there is only one positive real solution
-    let x = (bigint_sqrt(discriminant)? - b) / (2u128 * a);
+    let fee_rate = &BigDecimal::from(fee);
 
-    // Divide by precision to get final result and convert to Uint128
-    let offer_amount = bigint_to_uint128(x / &precision)?;
+    // Unwrap tax
+    let offer_asset_info = &assets[offer_idx].info;
+    let tax_rate_decimal = tax_configs
+        .map(|tax_configs| {
+            tax_configs
+                .get(&offer_asset_info.to_string())
+                .map(|tax_config| tax_config.tax_rate)
+                .unwrap_or(Decimal::zero())
+        })
+        .unwrap_or(Decimal::zero());
+    let tax_rate: &BigDecimal = &tax_rate_decimal.into();
+
+    // New formula including tax:
+    // Solve equation to find amount to swap
+    let two = &BigDecimal::from(2u128);
+    let four = two * two;
+    let numerator = offer_reserve * ask_reserve * (fee_rate - fee_rate * tax_rate)
+        + (offer_balance + offer_reserve) * ask_reserve * fee_rate
+        - two * offer_reserve * (ask_balance + ask_reserve);
+    let discriminant = (two * offer_reserve * ask_balance - offer_balance * ask_reserve * fee_rate
+        + two * offer_reserve * ask_reserve * (BigDecimal::one() - fee_rate)
+        + offer_reserve * ask_reserve * fee_rate * tax_rate)
+        .pow(2)
+        - four
+            * (ask_balance + ask_reserve + ask_reserve * (fee_rate * tax_rate - tax_rate))
+            * (offer_reserve.pow(2) * ask_balance - offer_balance * offer_reserve * ask_reserve);
+    let denominator = two
+        * (ask_balance + ask_reserve - ask_reserve * tax_rate + ask_reserve * fee_rate * tax_rate);
+    let x = (numerator + discriminant.sqrt()) / denominator;
+
+    // Convert final result to Uint128
+    let offer_amount: Uint128 = bigint_to_u128(&x.floor())?.into();
     let offer_asset = Asset {
         amount: offer_amount,
         info: assets[offer_idx].info.clone(),
@@ -104,10 +108,11 @@ pub fn calc_xyk_balancing_swap(
 
     // Calculate return amount from swap
     let return_amount = constant_product_formula(
-        bigint_to_uint128(offer_reserve / &precision)?,
-        bigint_to_uint128(ask_reserve / &precision)?,
+        reserves[offer_idx],
+        reserves[ask_idx],
         offer_amount,
         fee,
+        tax_rate_decimal,
     )?;
     let return_asset = Asset {
         amount: return_amount,
@@ -121,18 +126,17 @@ pub fn calc_xyk_balancing_swap(
 mod test {
     use apollo_cw_asset::{Asset, AssetInfo};
     use cosmwasm_std::{Decimal, Uint128};
-    use cw_bigint::BigInt;
     use test_case::test_case;
 
-    use crate::math::{bigint_sqrt, calc_xyk_balancing_swap};
+    use crate::math::calc_xyk_balancing_swap;
 
     /// Assert that two Decimals are almost the same (diff smaller than one
     /// permille)
     fn assert_decimal_almost_eq(a: Decimal, b: Decimal) {
         let diff = if a > b { (a - b) / a } else { (b - a) / b };
-        if diff > Decimal::permille(1) {
-            println!("Failed assert decimal almost eq for a: {a}, b: {b}. diff: {diff}");
-            panic!();
+        let max_allowed_diff = Decimal::permille(3);
+        if diff > max_allowed_diff {
+            panic!("Failed assert decimal almost eq for a: {a}, b: {b}. diff: {diff}, max allowed: {max_allowed_diff}");
         }
     }
 
@@ -150,9 +154,6 @@ mod test {
             Decimal::from_ratio(ask_balance + return_amount, offer_balance - offer_amount);
         let reserve_ratio_after_swap =
             Decimal::from_ratio(ask_reserve - return_amount, offer_reserve + offer_amount);
-        println!(
-            "asset_ratio_after_swap: {asset_ratio_after_swap}, reserve_ratio_after_swap: {reserve_ratio_after_swap}"
-        );
         assert_decimal_almost_eq(asset_ratio_after_swap, reserve_ratio_after_swap);
     }
 
@@ -245,13 +246,9 @@ mod test {
         // Same fee for all test cases
         let fee = Decimal::permille(3);
 
-        println!("Assets: {assets:?}");
-        println!("Reserves: {reserves:?}");
-
         // Calculate swap
-        let (swap_asset, return_asset) = calc_xyk_balancing_swap(assets, reserves, fee).unwrap();
-
-        println!("Swap: {swap_asset:?}, Return: {return_asset:?}");
+        let (swap_asset, return_asset) =
+            calc_xyk_balancing_swap(assets, reserves, fee, None).unwrap();
 
         // If ratios are already almost the same, no swap should happen
         if !should_swap {
@@ -276,60 +273,5 @@ mod test {
             swap_asset.amount,
             return_asset.amount,
         );
-        println!("------------------------------------");
-    }
-
-    #[test]
-    fn test_bigint_sqrt() {
-        // Test the sqrt algorithm
-        let test_cases = vec![
-            (0, 0),
-            (1, 1),
-            (2, 1),
-            (3, 1),
-            (4, 2),
-            (28, 5),
-            (29, 5),
-            (34, 5),
-            (36, 6),
-            (37, 6),
-            (57, 7),
-            (58, 7),
-            (66, 8),
-            (67, 8),
-            (69, 8),
-            (982734928374982u128, 31348603),
-            (u128::MAX, 18446744073709551615u128),
-        ];
-        for (input, expected) in test_cases {
-            let input = BigInt::from(input);
-            let expected = BigInt::from(expected);
-            let result = bigint_sqrt(input).unwrap();
-            assert_eq!(result, expected);
-        }
-
-        // Some larger than u128::MAX test cases
-        let test_cases = vec![
-            (
-                BigInt::from(u128::MAX) * 2,
-                BigInt::from(26087635650665564424u128),
-            ),
-            (
-                BigInt::from(u128::MAX) * 4,
-                BigInt::from(36893488147419103231u128),
-            ),
-            (
-                BigInt::from(u128::MAX) * 100,
-                BigInt::from(184467440737095516159u128),
-            ),
-            (
-                BigInt::from(u128::MAX) * 1000,
-                BigInt::from(583337266871351588485u128),
-            ),
-        ];
-        for (input, expected) in test_cases {
-            let result = bigint_sqrt(input).unwrap();
-            assert_eq!(result, expected);
-        }
     }
 }

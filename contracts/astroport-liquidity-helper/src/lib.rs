@@ -5,8 +5,9 @@
 //! in the correct ratio, the contract will swap some of the assets so that the
 //! ratio of assets are the same as the pools reserves after the swap.
 
+pub mod big_decimal;
 pub mod contract;
-mod error;
+pub mod error;
 pub mod math;
 pub mod msg;
 pub mod state;

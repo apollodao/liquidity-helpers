@@ -5,7 +5,7 @@ use cosmwasm_schema::serde::Serialize;
 use cw20::Cw20ExecuteMsg;
 
 use cosmwasm_std::{
-    to_binary, Addr, Api, Binary, Coin, CosmosMsg, Empty, StdResult, Uint128, WasmMsg,
+    to_json_binary, Addr, Api, Binary, Coin, CosmosMsg, Empty, StdResult, Uint128, WasmMsg,
 };
 
 use crate::msg::ExecuteMsg;
@@ -33,7 +33,7 @@ impl LiquidityHelper {
         msg: T,
         funds: Vec<Coin>,
     ) -> StdResult<CosmosMsg> {
-        let msg = to_binary(&msg.into())?;
+        let msg = to_json_binary(&msg.into())?;
         Ok(WasmMsg::Execute {
             contract_addr: self.addr().into(),
             msg,
@@ -57,7 +57,7 @@ impl LiquidityHelper {
             .map(|asset| {
                 Ok(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: asset.address,
-                    msg: to_binary(&Cw20ExecuteMsg::IncreaseAllowance {
+                    msg: to_json_binary(&Cw20ExecuteMsg::IncreaseAllowance {
                         spender: self.addr().into(),
                         amount: asset.amount,
                         expires: None,

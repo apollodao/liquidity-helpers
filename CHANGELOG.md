@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# [0.3.3] - 2024-04-09
+
+### Changed
+
+- Bump `cosmwasm-std` to version `1.5.3`.
+- Use Pool types from `cw-dex-astroport` and `cw-dex-osmosis` packages in place of the deprecated ones in `cw-dex`.
+- Support Astroport pair type `astroport-pair-xyk-sale-tax`.
+
 # [0.3.2] - 2024-02-06
+
+### Changed
 
 - Bump `cw-dex` to version `0.5.1`.
 

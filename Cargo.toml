@@ -3,7 +3,7 @@ members = ["contracts/*", "packages/*"]
 resolver = "2"
 
 [workspace.package]
-version       = "0.3.2"
+version       = "0.3.3"
 edition       = "2021"
 license       = "MPL-2.0"
 homepage      = "https://apollo.farm"
@@ -12,7 +12,7 @@ keywords      = ["cosmwasm", "liquidity", "provision", "osmosis", "astroport"]
 rust-version  = "1.64.0"
 
 [workspace.dependencies]
-cosmwasm-std      = "1.4.0"
+cosmwasm-std      = "1.5.3"
 cosmwasm-schema   = "1.4.0"
 cw2               = "1.1.0"
 cw20              = "1.1.0"
@@ -20,14 +20,17 @@ cw-storage-plus   = "1.1.0"
 thiserror         = "1.0.45"
 apollo-cw-asset   = "0.1.2"
 cw-dex            = "0.5.1"
+cw-dex-astroport  = "0.1"
+cw-dex-osmosis    = "0.1"
 apollo-utils      = "0.1.1"
 cw-bigint         = "0.4.3"
 liquidity-helper  = { version = "0.3.0", path = "./packages/liquidity-helper" }
 semver            = "1.0.20"
 
 # Dev dependencies
-cw-it             = "0.2.2"
+cw-it             = "0.3.1"
 test-case         = "3.2.1"
+proptest          = "1.4.0"
 
 [profile.release]
 codegen-units     = 1
