@@ -416,7 +416,7 @@ pub fn test_balancing_provide_liquidity(
         None,
     );
     let pool = AstroportPool {
-        lp_token_addr: Addr::unchecked(uluna_astro_lp_token),
+        lp_token: AssetInfo::cw20(Addr::unchecked(uluna_astro_lp_token)),
         pair_addr: Addr::unchecked(uluna_astro_pair_addr.clone()),
         pair_type,
         pool_assets: vec![
